@@ -45,8 +45,17 @@ bool print_log(const char* src, int code) {
 void msg_callback_delta(char* src, unsigned int len, Message_status_t flag) {
   if(flag == STATUS_NORMAL) {
     // Get the whole delta section
-    print_log("getDeltaKeyValue", myClient.getDeltaValueByKey(src, "light", JSON_buf, 100));
-    Serial.print(JSON_buf);
+    print_log("getDeltaKeyValue", myClient.getDeltaValueByKey(src, "light", value_buf, 100));
+
+  
+    String payload = "{\"state\":{\"reported\":\"";
+    payload += value_buf;
+    payload += "\"}}";
+    payload.toCharArray(JSON_buf, 100);
+
+      Serial.println(JSON_buf);
+    print_log("update thing shadow", myClient.shadow_update(AWS_IOT_MY_THING_NAME, JSON_buf, 100, NULL, 5));
+    
   }
 }
 
