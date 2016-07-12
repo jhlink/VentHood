@@ -12,7 +12,8 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-
+ 
+#include <ArduinoJson.h>
 #include <aws_iot_mqtt.h>
 #include <aws_iot_version.h>
 #include "aws_iot_config.h"
@@ -45,15 +46,27 @@ bool print_log(const char* src, int code) {
 void msg_callback_delta(char* src, unsigned int len, Message_status_t flag) {
   if(flag == STATUS_NORMAL) {
     // Get the whole delta section
-    print_log("getDeltaKeyValue", myClient.getDeltaValueByKey(src, "light", value_buf, 100));
+    StaticJsonBuffer<100> jsonBufferPayload;
+    StaticJsonBuffer<100> jsonBuffer;
 
-  
-    String payload = "{\"state\":{\"reported\":\"";
-    payload += value_buf;
-    payload += "\"}}";
-    payload.toCharArray(JSON_buf, 100);
+    print_log("getDeltaKeyValue", myClient.getDeltaValueByKey(src, "", value_buf, 100));
+    JsonObject& root = jsonBuffer.parseObject(value_buf);
 
-      Serial.println(JSON_buf);
+    JsonObject& payload = jsonBufferPayload.createObject();
+
+    JsonObject& payloadState = payload.createNestedObject("state");
+    JsonObject& payloadReported = payloadState.createNestedObject("reported");
+
+    for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it)
+    {
+      Serial.println(it->key);
+      Serial.println(it->value.asString());
+      payloadReported[it->key] = it->value;
+    }
+    
+    payload.printTo(JSON_buf, 100);
+
+    Serial.println(JSON_buf);
     print_log("update thing shadow", myClient.shadow_update(AWS_IOT_MY_THING_NAME, JSON_buf, 100, NULL, 5));
     
   }
@@ -83,6 +96,7 @@ void loop() {
     if(myClient.yield()) {
       Serial.println("Yield failed.");
     }
-    delay(100); // check for incoming delta per 100 ms
+
+    delay(1000); // check for incoming delta per 100 ms
   } 
 }
