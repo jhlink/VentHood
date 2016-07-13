@@ -62,6 +62,14 @@ void msg_callback_delta(char* src, unsigned int len, Message_status_t flag) {
       Serial.println(it->key);
       Serial.println(it->value.asString());
       payloadReported[it->key] = it->value;
+
+      if (strcmp(it->value,"ON") == 0) {
+        digitalWrite(A1, HIGH);
+        Serial.println("LED ON");
+      } else {
+        digitalWrite(A1, LOW);
+        Serial.println("LED OFF");
+      }
     }
     
     payload.printTo(JSON_buf, 100);
@@ -89,6 +97,8 @@ void setup() {
       }
     }
   }
+
+  pinMode(A1, OUTPUT);
 }
 
 void loop() {
@@ -97,6 +107,6 @@ void loop() {
       Serial.println("Yield failed.");
     }
 
-    delay(1000); // check for incoming delta per 100 ms
+    delay(100); // check for incoming delta per 100 ms
   } 
 }
