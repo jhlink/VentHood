@@ -54,18 +54,18 @@ clean:
 	rm -rf build
 
 .PHONY: debug
-debug: build/debug/coldbrew
+debug: build/debug/vent-hood
 
 .PHONY: test
 test: debug
-	./build/debug/coldbrew
+	./build/debug/vent-hood
 	coveralls -b . --gcov-options '\-lp' --dryrun
 
 .PHONY: coveralls
 coveralls: test
 	coveralls -b . --gcov-options '\-lp'
 	
-build/debug/coldbrew: $(addprefix build/debug/, $(OBJECTS))
+build/debug/vent-hood: $(addprefix build/debug/, $(OBJECTS))
 	$(CC) $(LDFLAGS) -o $@ $^
 
 build/debug/main.o: test/main.cpp $(HEADERS) build/debug

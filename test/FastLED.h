@@ -1,0 +1,2 @@
+#define FASTLED_USING_NAMESPACE 
+
