@@ -1,24 +1,25 @@
-/*
- *   Copyright (c) 2016 FirstBuild
+/**
+ * Copyright (c) 2016 FirstBuild
  *
- *     Permission is hereby granted, free of charge, to any person obtaining a copy
- *       of this software and associated documentation files (the "Software"), to deal
- *         in the Software without restriction, including without limitation the rights
- *           to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *             copies of the Software, and to permit persons to whom the Software is
- *               furnished to do so, subject to the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- *                 The above copyright notice and this permission notice shall be included in
- *                   all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- *                     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *                       IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *                         FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *                           AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *                             LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *                               OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *                                 THE SOFTWARE.
- *                                 */
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ */
 
 #include "AnalogInputDebounced.h"
 
@@ -31,7 +32,7 @@ bool AnalogInputDebounced::checkInRange(const T& valueToCheck, const T& lowerBou
 
 
 int AnalogInputDebounced::analogVoltageValue(float inputVolt) {
-    int analogResult = (int) ((inputVolt * 4096.0) / 4096);
+    int analogResult = (int) ((4095 / 5.0) * inputVolt) ;
     return analogResult;
 }
 
@@ -52,7 +53,7 @@ void AnalogInputDebounced::updateInput(void) {
     int currentAnalogReading = analogRead(m_pin);
     int lowerBoundInclusive = m_voltagePoint - m_toleranceVoltageRange;
     int upperBoundInclusive = m_voltagePoint + m_toleranceVoltageRange;
-    
+
     if (checkInRange(currentAnalogReading, lowerBoundInclusive, upperBoundInclusive)) {
         if (m_count < DEBOUNCE_COUNT) {
             m_count++;
@@ -77,6 +78,5 @@ bool AnalogInputDebounced::isUniquelyActive(void) {
 }
 
 bool AnalogInputDebounced::isActive(void) {
-    return m_inputState;    
+    return m_inputState;
 }
-

@@ -36,18 +36,19 @@
 #define FAN_WIFI_RESET_SIGNAL_TIMEOUT 5000
 #endif
 
-#ifndef DEFAULT_BRIGHTNESS 
+#ifndef DEFAULT_BRIGHTNESS
 #define DEFAULT_BRIGHTNESS 50
 #endif
 
+const float LIGHT_BTN_VOLTAGE = 4.02;
+const float POWER_BTN_VOLTAGE = 3.0;
 enum fanPowerLevel { Off=0, Low=25, Med=50, Hi=75, Boost=100 };
 
 class Device {
     protected:
         bool onOffState;
-        unsigned long signalStartTime;
-    
-    public: 
+
+    public:
         Device(bool inputDeviceState);
         virtual void turnDeviceOff(void);
         virtual void turnDeviceOn(void);
@@ -62,7 +63,7 @@ class Light : public Device {
         int percentBrightness;
         int lightState;
         int prevState;
-        
+
     public:
         Light(bool inputDeviceState);
         void setBrightnessTo(int inputBrightness);
@@ -77,7 +78,7 @@ class Fan : public Device {
     private:
         fanPowerLevel fanSpeed;
         void setupFanRelayPins(void);
-        
+
     public:
         Fan(bool inputDeviceState);
         Fan(bool inputDeviceState, fanPowerLevel inputFanSpeed);
@@ -89,6 +90,3 @@ class Fan : public Device {
 };
 
 #endif
-
-
-
