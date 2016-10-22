@@ -72,6 +72,7 @@ void AnalogInputDebounced::updateInput(void) {
 bool AnalogInputDebounced::isUniquelyActive(void) {
     if (m_inputState == true && m_prevState != m_inputState) {
         m_prevState = m_inputState;
+        Serial.println("Diving deep");
         return true;
     }
     return false;

@@ -261,12 +261,7 @@ int setPercentage(String args) {
 
     sscanf(applianceArgs, "%d=%d=%d", &index, &value, &incDecIdentifier);
 
-    // int powerLevel = (int) (((float) value * 250) / 100.0);
     int powerLevel = value;
-
-    // if (index == 1) {
-    //     powerLevel = value < 5 ? value : 4;
-    // }
 
     Serial.println();
     Serial.print("Percentage");
@@ -282,21 +277,27 @@ int setPercentage(String args) {
     Serial.println();
 
     //  If index is 0 or 1 for device 0 or 1
-  switch (index) {
+    switch (index) {
       case 0:
           //  Turn on lights
           //  Value 1 is increment, Value 0 is decrement.
-          powerLevel = rndUpToNearest50(powerLevel);
+
+          //  Correct values. Dim/Brighten features are the
+          //    only features enabled. By default,
+          //    brightness increments or decrements by 25.
+
+          powerLevel = venthoodLights.getBrightnessLevel() / 50;
           if (incDecIdentifier == 1) {
-              powerLevel += venthoodLights.getBrightnessLevel();
-              Serial.println("BRIGHTNESS APPENDED");
-          } else if (incDecIdentifier == 0) {
-              powerLevel = venthoodLights.getBrightnessLevel() - powerLevel;
-              Serial.println("BRIGHTNESS APPENDED");
+              powerLevel++;
+              Serial.println("BRIGHTENED");
+          } else if (incDecIdentifier == 2) {
+              powerLevel--;
+              Serial.println("DIMMED");
           }
 
-          powerLevel = powerLevel <= 100 ? powerLevel : 100;
+          powerLevel = powerLevel <= 2 ? powerLevel : 2;
           powerLevel = powerLevel >= 0 ? powerLevel : 0;
+          powerLevel = powerLevel * 50;
 
           venthoodLights.setBrightnessTo(powerLevel);
           venthoodLights.executeLightChanges();
@@ -304,14 +305,10 @@ int setPercentage(String args) {
 
       case 1:
           //  Turn on Fan
-            venthoodFan.setFanSpeed(powerLevel);
+          venthoodFan.setFanSpeed(powerLevel);
           break;
-  }
+    }
     return powerLevel;
-}
-
-int rndUpToNearest50(int value) {
-    return value + 50 - (value % 50);
 }
 
 int rndUpToNearest25(int value) {

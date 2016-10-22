@@ -3,6 +3,7 @@
 
 #include <application.h>
 #include "AnalogInputDebounced.h"
+#include "assert.h"
 
 #ifndef CH_A
 #define CH_A D2
@@ -72,6 +73,7 @@ class Light : public Device {
         void turnDeviceOff(void);
         void turnDeviceOn(void);
         void process(void);
+        void updateLightState(void);
 };
 
 class Fan : public Device {

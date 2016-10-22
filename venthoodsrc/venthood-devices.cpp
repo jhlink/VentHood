@@ -135,14 +135,17 @@ int Light::getBrightnessLevel(void) {
     return percentBrightness;
 }
 
+void Light::updateLightState() {
+    if (analogRead(LIGHT_STATE) < 3000) {
+        lightState = 0;
+    } else if (analogRead(LIGHT_STATE >= 3000) && lightState == 0) {
+        lightState = 1;
+    }
+}
+
 void Light::executeLightChanges(void) {
 
     // TODO: Implement "hop" feature for buttons.
-
-    if (analogRead(LIGHT_STATE) < 3000) {
-        lightState = 0;
-        percentBrightness = 0;
-    }
 
     int desiredState = 0;
     if (percentBrightness == 50) {
@@ -152,16 +155,12 @@ void Light::executeLightChanges(void) {
     }
 
     Serial.println("LIGHT TEST");
-    for (int i = 0; i < 2; i++) {
-        Serial.println(lightState);
-        Serial.println(desiredState);
-        if (lightState != desiredState) {
-            switchToChannel(1);
-            lightState = (lightState + 1) % 3;
-            Serial.println("LIGHT CHANGE STATE");
-        } else {
-            break;
-        }
+    while (!(lightState == desiredState)) {
+        updateLightState();
+        switchToChannel(1);
+        lightState = ((lightState + 1) % 3);
+        Serial.println("LIGHT CHANGE STATE");
+        delay(150);
     }
 
     Serial.println("LIGHT CHANGE EXECUTED");
@@ -187,11 +186,14 @@ void Light::process(void) {
     AnalogInputDebounced checkingForLightButton = AnalogInputDebounced(TASTI_READ, LIGHT_BTN_VOLTAGE);
     checkingForLightButton.updateInput();
 
-    if (checkingForLightButton.isUniquelyActive()) {
-        lightState = (lightState + 1) % 3;
-        percentBrightness = (lightState * 50) % 101;
-    }
+    // if (checkingForLightButton.isUniquelyActive()) {
+    //     lightState = (lightState + 1) % 3;
+    //     percentBrightness = lightState * 50;
+    //     Serial.println("OKay... let's see...");
+    // }
 
+
+    updateLightState();
 }
 
 
