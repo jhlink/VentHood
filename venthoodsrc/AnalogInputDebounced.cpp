@@ -23,26 +23,31 @@
 
 #include "AnalogInputDebounced.h"
 
-#define DEBOUNCE_COUNT 20
+#define DEBOUNCE_COUNT 2
+#define UPDATETIME 10
 
 template <typename T>
 bool AnalogInputDebounced::checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound) {
-    return !(valueToCheck < lowerBound) && (valueToCheck <= upperBound);
+    return (valueToCheck >= lowerBound) && (valueToCheck <= upperBound);
+}
+
+AnalogInputDebounced::AnalogInputDebounced(void) {
+  m_pin = -1;
+  m_prevState = false;
+  m_inputState = false;
+  m_count = -1;
+  m_voltagePoint = -1;
+  m_toleranceVoltageRange = -1;
 }
 
 
-int AnalogInputDebounced::analogVoltageValue(float inputVolt) {
-    int analogResult = (int) ((4095 / 5.0) * inputVolt) ;
-    return analogResult;
-}
-
-AnalogInputDebounced::AnalogInputDebounced(int pin, float targetVoltage) {
+AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) {
     m_pin = pin;
     m_prevState = false;
     m_inputState = false;
     m_count = 0;
-    m_voltagePoint = analogVoltageValue(targetVoltage);
-    m_toleranceVoltageRange = 300;
+    m_voltagePoint = targetVoltage;
+    m_toleranceVoltageRange = 100;
 }
 
 void AnalogInputDebounced::setVoltToleranceRange(int newBoundary) {
@@ -50,6 +55,14 @@ void AnalogInputDebounced::setVoltToleranceRange(int newBoundary) {
 }
 
 void AnalogInputDebounced::updateInput(void) {
+    static unsigned long prevTime = millis();
+
+    if ((millis() - prevTime) < UPDATETIME) {
+        return;
+    } else {
+        prevTime = millis();
+    }
+
     int currentAnalogReading = analogRead(m_pin);
     int lowerBoundInclusive = m_voltagePoint - m_toleranceVoltageRange;
     int upperBoundInclusive = m_voltagePoint + m_toleranceVoltageRange;
@@ -70,10 +83,11 @@ void AnalogInputDebounced::updateInput(void) {
 }
 
 bool AnalogInputDebounced::isUniquelyActive(void) {
-    if (m_inputState == true && m_prevState != m_inputState) {
+    if ((m_inputState == true) && (m_prevState != m_inputState)) {
         m_prevState = m_inputState;
-        Serial.println("Diving deep");
         return true;
+    } else if ((m_inputState == false) && (m_prevState != m_inputState)) {
+        m_prevState = m_inputState;
     }
     return false;
 }

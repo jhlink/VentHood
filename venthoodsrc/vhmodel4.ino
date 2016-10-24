@@ -181,7 +181,7 @@ void beammeup() {
 }
 
 
-//Timer functionTest(5000, beammeup);
+Timer functionTest(5000, beammeup);
 
 void setup() {
     Serial.begin(9600);
@@ -192,7 +192,7 @@ void setup() {
     pinMode(ENABLE, OUTPUT);
     pinMode(LIGHT_STATE, INPUT);
     pinMode(TASTI_READ, INPUT);
-    //functionTest.stop();
+    //functionTest.start();
 
     // pinMode(GESTURE_SENSOR_2, INPUT);
     // pinMode(GESTURE_SENSOR_1, INPUT);
@@ -202,7 +202,7 @@ void setup() {
 }
 
 void loop() {
-    venthoodFan.process();
+    //venthoodFan.process();
     venthoodLights.process();
 }
 

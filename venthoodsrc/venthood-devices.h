@@ -41,8 +41,8 @@
 #define DEFAULT_BRIGHTNESS 50
 #endif
 
-const float LIGHT_BTN_VOLTAGE = 4.02;
-const float POWER_BTN_VOLTAGE = 3.0;
+const int LIGHT_BTN_VOLTAGE = 4095;
+const int POWER_BTN_VOLTAGE = 3700;
 enum fanPowerLevel { Off=0, Low=25, Med=50, Hi=75, Boost=100 };
 
 class Device {
@@ -64,6 +64,7 @@ class Light : public Device {
         int percentBrightness;
         int lightState;
         int prevState;
+        AnalogInputDebounced checkingForLightButton;
 
     public:
         Light(bool inputDeviceState);

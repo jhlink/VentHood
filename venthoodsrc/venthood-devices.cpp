@@ -1,6 +1,5 @@
 #include "venthood-devices.h"
 
-
 // ---------------------
 //  Santa's Little Helper Functions
 // ---------------------
@@ -115,13 +114,12 @@ bool Device::getDeviceState(void) {
 //  LIGHT CLASS
 // ---------------------
 
-
 Light::Light(bool inputDeviceState = false) :
     Device(inputDeviceState), percentBrightness(0) {
 
     lightState = 0;
     prevState = 50;
-
+    checkingForLightButton = AnalogInputDebounced(TASTI_READ, LIGHT_BTN_VOLTAGE);
 }
 
 void Light::setBrightnessTo(int inputBrightness) {
@@ -136,9 +134,18 @@ int Light::getBrightnessLevel(void) {
 }
 
 void Light::updateLightState() {
-    if (analogRead(LIGHT_STATE) < 3000) {
+    static unsigned long prevTime = millis();
+
+    if ((millis() - prevTime) < 20) {
+        return;
+    } else {
+        prevTime = millis();
+    }
+
+    int lightStateReading = analogRead(LIGHT_STATE);
+    if (lightStateReading < 3000) {
         lightState = 0;
-    } else if (analogRead(LIGHT_STATE >= 3000) && lightState == 0) {
+    } else if ((lightStateReading >= 3000) && lightState == 0) {
         lightState = 1;
     }
 }
@@ -155,6 +162,8 @@ void Light::executeLightChanges(void) {
     }
 
     Serial.println("LIGHT TEST");
+    Serial.print("DESIRED STATE: ");
+    Serial.println(desiredState);
     while (!(lightState == desiredState)) {
         updateLightState();
         switchToChannel(1);
@@ -162,6 +171,9 @@ void Light::executeLightChanges(void) {
         Serial.println("LIGHT CHANGE STATE");
         delay(150);
     }
+
+    Serial.println(lightState);
+    Serial.println(percentBrightness);
 
     Serial.println("LIGHT CHANGE EXECUTED");
 }
@@ -183,15 +195,14 @@ void Light::turnDeviceOn(void) {
 
 void Light::process(void) {
 
-    AnalogInputDebounced checkingForLightButton = AnalogInputDebounced(TASTI_READ, LIGHT_BTN_VOLTAGE);
     checkingForLightButton.updateInput();
 
-    // if (checkingForLightButton.isUniquelyActive()) {
-    //     lightState = (lightState + 1) % 3;
-    //     percentBrightness = lightState * 50;
-    //     Serial.println("OKay... let's see...");
-    // }
-
+    if (checkingForLightButton.isUniquelyActive()) {
+        lightState = (lightState + 1) % 3;
+        percentBrightness = lightState == 1 ? 100 : 50;
+        Serial.println(lightState);
+        Serial.println(percentBrightness);
+    }
 
     updateLightState();
 }

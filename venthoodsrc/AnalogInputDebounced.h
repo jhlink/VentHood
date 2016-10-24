@@ -1,4 +1,4 @@
-/** 
+/**
  * Copyright (c) 2016 FirstBuild
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,7 +29,8 @@
 
 class AnalogInputDebounced {
   public:
-    AnalogInputDebounced(int pin, float targetVoltage);
+    AnalogInputDebounced(void);
+    AnalogInputDebounced(int pin, int targetVoltage);
     void updateInput(void);
     bool isActive(void);
     bool isUniquelyActive(void);
