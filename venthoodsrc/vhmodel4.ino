@@ -139,7 +139,7 @@ void swChannel(int targChan) {
     }
     delay(50);
     digitalWrite(ENABLE, LOW);
-    delay(250);
+    delay(2000);
     if (targChan == 8) {
         delay(2250);
     }
@@ -180,6 +180,9 @@ void beammeup() {
     }
 }
 
+void measure() {
+  Serial.println(analogRead(TASTI_READ));
+}
 
 Timer functionTest(5000, beammeup);
 
@@ -192,7 +195,7 @@ void setup() {
     pinMode(ENABLE, OUTPUT);
     pinMode(LIGHT_STATE, INPUT);
     pinMode(TASTI_READ, INPUT);
-    //functionTest.start();
+    functionTest.stop();
 
     // pinMode(GESTURE_SENSOR_2, INPUT);
     // pinMode(GESTURE_SENSOR_1, INPUT);

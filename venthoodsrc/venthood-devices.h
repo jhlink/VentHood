@@ -41,8 +41,8 @@
 #define DEFAULT_BRIGHTNESS 50
 #endif
 
-const int LIGHT_BTN_VOLTAGE = 4095;
-const int POWER_BTN_VOLTAGE = 3700;
+const int LIGHT_BTN_VOLTAGE = 2450;
+const int POWER_BTN_VOLTAGE = 1820;
 enum fanPowerLevel { Off=0, Low=25, Med=50, Hi=75, Boost=100 };
 
 class Device {
@@ -56,8 +56,6 @@ class Device {
         virtual bool getDeviceState(void);
         virtual void process(void)=0;
 };
-
-
 
 class Light : public Device {
     private:

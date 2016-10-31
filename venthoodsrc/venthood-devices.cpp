@@ -179,6 +179,9 @@ void Light::executeLightChanges(void) {
 }
 
 void Light::turnDeviceOff(void) {
+    if (!onOffState) {
+      return;
+    }
     onOffState = false;
     prevState = percentBrightness;
     this->setBrightnessTo(0);
@@ -187,6 +190,9 @@ void Light::turnDeviceOff(void) {
 }
 
 void Light::turnDeviceOn(void) {
+    if (onOffState) {
+      return;
+    }
     onOffState = true;
     this->setBrightnessTo(prevState);
     this->executeLightChanges();
@@ -200,6 +206,9 @@ void Light::process(void) {
     if (checkingForLightButton.isUniquelyActive()) {
         lightState = (lightState + 1) % 3;
         percentBrightness = lightState == 1 ? 100 : 50;
+        percentBrightness = lightState == 0 ? 0 : percentBrightness;
+        onOffState = lightState >= 1 ? true : false;
+
         Serial.println(lightState);
         Serial.println(percentBrightness);
     }
