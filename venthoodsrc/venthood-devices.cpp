@@ -230,40 +230,65 @@ Fan::Fan(bool inputDeviceState = false, fanPowerLevel inputFanSpeed = Off) :
 
 }
 
+
 void Fan::setFanSpeed(int inputSpeed) {
-    switch(inputSpeed) {
+  fanPowerLevel enumPlaceholder;
+  switch (inputSpeed) {
+      case 0:
+        enumPlaceholder = Off;
+        break;
+
+      case 25:
+        enumPlaceholder = Low;
+        break;
+
+      case 50:
+        enumPlaceholder = Med;
+        break;
+
+      case 75:
+        enumPlaceholder = Hi;
+        break;
+
+      case 100:
+        enumPlaceholder = Boost;
+        break;
+
+      default:
+        enumPlaceholder = Off;
+        break;
+  }
+  fanSpeed = enumPlaceholder;
+}
+
+void Fan::executeFanChanges(void) {
+    switch(fanSpeed) {
         case Off:
-            fanSpeed = Off;
             turnDeviceOff();
             Serial.println("FAN OFF");
             break;
 
         case Low:
-            fanSpeed = Low;
             switchToChannel(3);
             Serial.println("FAN LOW SPEED");
             break;
 
         case Med:
-            fanSpeed = Med;
             switchToChannel(4);
             Serial.println("FAN MEDIUM SPEED");
             break;
 
         case Hi:
-            fanSpeed = Hi;
             switchToChannel(5);
             Serial.println("FAN HIGH SPEED");
             break;
 
         case Boost:
-            fanSpeed = Boost;
             switchToChannel(8);
             Serial.println("FAN BOOST SPEED");
             break;
 
         default:
-            fanSpeed = Off;
             turnDeviceOff();
             Serial.println("NO ACTION/N.A.");
             break;
@@ -295,4 +320,141 @@ void Fan::process(void) {
     } else {
         cycleCount = 0;
     }
+}
+
+void Gesture::interruptRoutine() {
+  isr_flag = 1;
+}
+
+Gesture::Gesture(Light& inputLightDevice, Fan& inputFanDevice) :
+  Device(true), isr_flag(-1), apds(SparkFun_APDS9960()), lightDevice(inputLightDevice), fanDevice(inputFanDevice) {}
+
+void Gesture::init(void) {
+
+ pinMode(APDS9960_INT, INPUT);
+
+ //apds = SparkFun_APDS9960();
+ attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+
+ // Initialize APDS-9960 (configure I2C and initial values)
+ if ( apds.init() ) {
+   Serial.println(F("APDS-9960 initialization complete"));
+ } else {
+   Serial.println(F("Something went wrong during APDS-9960 init!"));
+ }
+
+ // Start running the APDS-9960 gesture sensor engine
+ if ( apds.enableGestureSensor(true) ) {
+   Serial.println(F("Gesture sensor is now running"));
+ } else {
+   Serial.println(F("Something went wrong during gesture sensor init!"));
+ }
+}
+
+void Gesture::handleGesture() {
+    int lightBrightness = lightDevice.getBrightnessLevel();
+    int fanLevel = fanDevice.currentFanSpeed();
+    if ( apds.isGestureAvailable() ) {
+        switch ( apds.readGesture() ) {
+          case DIR_UP:
+            Serial.println("UP");
+            gestureFlag = 1;
+            lightBrightness += 50;
+            lightBrightness = lightBrightness > 100 ? 100 : lightBrightness;
+            lightDevice.setBrightnessTo(lightBrightness);
+            break;
+
+          case DIR_DOWN:
+            Serial.println("DOWN");
+            gestureFlag = 2;
+            lightBrightness -= 50;
+            lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
+            lightDevice.setBrightnessTo(lightBrightness);
+            break;
+
+          case DIR_LEFT:
+            Serial.println("LEFT");
+            gestureFlag = 3;
+            fanLevel -= 25;
+            fanLevel = fanLevel < 0? 0 : fanLevel;
+            fanDevice.setFanSpeed(fanLevel);
+            break;
+
+          case DIR_RIGHT:
+            Serial.println("RIGHT");
+            gestureFlag = 4;
+            fanLevel += 25;
+            fanLevel = fanLevel > 100 ? 100 : fanLevel;
+            fanDevice.setFanSpeed(fanLevel);
+            break;
+
+          case DIR_NEAR:
+            Serial.println("NEAR");
+            break;
+
+          case DIR_FAR:
+            Serial.println("FAR");
+            break;
+
+          default:
+            Serial.println("NONE");
+            gestureFlag = 0;
+            break;
+
+        }
+  }
+}
+
+void Gesture::turnDeviceOff(void) {
+  detachInterrupt(APDS9960_INT);
+  apds.disableGestureSensor();
+}
+
+void Gesture::turnDeviceOn(void) {
+  attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+  apds.enableGestureSensor(true);
+}
+
+bool Gesture::getDeviceState(void) {
+  return apds.isGestureAvailable();
+}
+
+void Gesture::process(void) {
+  if( isr_flag == 1 ) {
+    detachInterrupt(APDS9960_INT);
+    handleGesture();
+    isr_flag = 0;
+    attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+  }
+
+  // Cases corresponding to certain Gesture Flags
+  //  in case repetitive looping is required
+  switch (gestureFlag) {
+    case 0:
+      break;
+
+    case 1:
+      lightDevice.executeLightChanges();
+      gestureFlag = 0;
+      break;
+
+    case 2:
+      lightDevice.executeLightChanges();
+      gestureFlag = 0;
+      break;
+
+    case 3:
+      fanDevice.executeFanChanges();
+      gestureFlag = 0;
+      break;
+
+    case 4:
+      fanDevice.executeFanChanges();
+      gestureFlag = 0;
+      break;
+
+    default:
+      gestureFlag = 0;
+      break;
+  }
 }

@@ -3,7 +3,7 @@
 
 #include <application.h>
 #include "AnalogInputDebounced.h"
-#include "assert.h"
+#include "SparkFun_APDS9960.h" #include "assert.h"
 
 #ifndef CH_A
 #define CH_A D2
@@ -39,6 +39,10 @@
 
 #ifndef DEFAULT_BRIGHTNESS
 #define DEFAULT_BRIGHTNESS 50
+#endif
+
+#ifndef APDS9960_INT
+#define APDS9960_INT D6
 #endif
 
 const int LIGHT_BTN_VOLTAGE = 2450;
@@ -84,9 +88,30 @@ class Fan : public Device {
         Fan(bool inputDeviceState);
         Fan(bool inputDeviceState, fanPowerLevel inputFanSpeed);
         void setFanSpeed(int inputSpeed);
+        void executeFanChanges(void);
         fanPowerLevel currentFanSpeed(void);
         void turnDeviceOff(void);
         void turnDeviceOn(void);
+        void process(void);
+};
+
+class Gesture: public Device {
+    private:
+        int gestureFlag;
+        volatile int isr_flag;
+        SparkFun_APDS9960 apds;
+        Light& lightDevice;
+        Fan& fanDevice;
+
+        void handleGesture(void);
+
+    public:
+        Gesture(Light& lightDevice, Fan& fanDevice);
+        void init(void);
+        void interruptRoutine(void);
+        void turnDeviceOff(void);
+        void turnDeviceOn(void);
+        bool getDeviceState(void);
         void process(void);
 };
 

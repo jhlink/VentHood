@@ -26,7 +26,7 @@
 //  Version
 #define VENTHOOD_VERSION_MAJOR 0
 #define VENTHOOD_VERSION_MINOR 4
-#define VENTHOOD_VERSION_PATCH 1
+#define VENTHOOD_VERSION_PATCH 2
 
 //  Inputs pins
 
@@ -60,7 +60,8 @@
 // #define LOW_BRIGHTNESS  75
 
 Fan venthoodFan = Fan(false);
-Light venthoodLights= Light(false);
+Light venthoodLights = Light(false);
+Gesture venthoodGesture = Gesture(venthoodLights, venthoodFan);
 bool lightMode = false;
 
 void swChannel(int targChan) {
@@ -188,25 +189,27 @@ Timer functionTest(5000, beammeup);
 
 void setup() {
     Serial.begin(9600);
-
+    while(!Serial);
     pinMode(CH_A, OUTPUT);
     pinMode(CH_B, OUTPUT);
     pinMode(CH_C, OUTPUT);
     pinMode(ENABLE, OUTPUT);
     pinMode(LIGHT_STATE, INPUT);
     pinMode(TASTI_READ, INPUT);
+    venthoodGesture.init();
     functionTest.stop();
 
     // pinMode(GESTURE_SENSOR_2, INPUT);
     // pinMode(GESTURE_SENSOR_1, INPUT);
 
-    Particle.function("setvalue", setPercentage);
-    Particle.function("onoff", onoffDevice);
+//    Particle.function("setvalue", setPercentage);
+//    Particle.function("onoff", onoffDevice);
 }
 
 void loop() {
     //venthoodFan.process();
-    venthoodLights.process();
+    //venthoodLights.process();
+    venthoodGesture.process();
 }
 
 int onoffDevice(String args) {
@@ -309,11 +312,8 @@ int setPercentage(String args) {
       case 1:
           //  Turn on Fan
           venthoodFan.setFanSpeed(powerLevel);
+          venthoodFan.executeFanChanges();
           break;
     }
     return powerLevel;
-}
-
-int rndUpToNearest25(int value) {
-    return value + 50 - (value % 50);
 }
