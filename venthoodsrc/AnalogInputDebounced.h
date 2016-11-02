@@ -34,6 +34,7 @@ class AnalogInputDebounced {
     void updateInput(void);
     bool isActive(void);
     bool isUniquelyActive(void);
+    bool isLongPressed(void);
     void setVoltToleranceRange(int newBoundary);
 
   private:

@@ -47,6 +47,9 @@
 
 const int LIGHT_BTN_VOLTAGE = 2450;
 const int POWER_BTN_VOLTAGE = 1820;
+const int FAN_HI_BTN_VOLTAGE = 100;
+const int FAN_MED_BTN_VOLTAGE = 620;
+const int FAN_LOW_BTN_VOLTAGE = 1220;
 enum fanPowerLevel { Off=0, Low=25, Med=50, Hi=75, Boost=100 };
 
 class Device {
@@ -82,11 +85,16 @@ class Light : public Device {
 class Fan : public Device {
     private:
         fanPowerLevel fanSpeed;
+        fanPowerLevel prevState;
+        AnalogInputDebounced checkingForFanLowButton;
+        AnalogInputDebounced checkingForFanMedButton;
+        AnalogInputDebounced checkingForFanHiButton;
+        AnalogInputDebounced checkingForPowerButton;
+
         void setupFanRelayPins(void);
 
     public:
         Fan(bool inputDeviceState);
-        Fan(bool inputDeviceState, fanPowerLevel inputFanSpeed);
         void setFanSpeed(int inputSpeed);
         void executeFanChanges(void);
         fanPowerLevel currentFanSpeed(void);

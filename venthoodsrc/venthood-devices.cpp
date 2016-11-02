@@ -172,6 +172,7 @@ void Light::executeLightChanges(void) {
         delay(150);
     }
 
+    onOffState = lightState == 0 ? false : true;
     Serial.println(lightState);
     Serial.println(percentBrightness);
 
@@ -223,13 +224,13 @@ void Light::process(void) {
 
 
 Fan::Fan(bool inputDeviceState = false) :
-    Device(inputDeviceState) { }
+    Device(inputDeviceState), fanSpeed(Off), prevState(Off) {
 
-Fan::Fan(bool inputDeviceState = false, fanPowerLevel inputFanSpeed = Off) :
-    Device(inputDeviceState), fanSpeed(inputFanSpeed) {
-
+      checkingForFanLowButton  = AnalogInputDebounced(TASTI_READ,  FAN_LOW_BTN_VOLTAGE);
+      checkingForFanMedButton = AnalogInputDebounced(TASTI_READ, FAN_MED_BTN_VOLTAGE);
+      checkingForFanHiButton = AnalogInputDebounced(TASTI_READ, FAN_HI_BTN_VOLTAGE);
+      checkingForPowerButton = AnalogInputDebounced(TASTI_READ, POWER_BTN_VOLTAGE);
 }
-
 
 void Fan::setFanSpeed(int inputSpeed) {
   fanPowerLevel enumPlaceholder;
@@ -264,7 +265,7 @@ void Fan::setFanSpeed(int inputSpeed) {
 void Fan::executeFanChanges(void) {
     switch(fanSpeed) {
         case Off:
-            turnDeviceOff();
+            switchToChannel(2);
             Serial.println("FAN OFF");
             break;
 
@@ -289,7 +290,7 @@ void Fan::executeFanChanges(void) {
             break;
 
         default:
-            turnDeviceOff();
+            switchToChannel(2);
             Serial.println("NO ACTION/N.A.");
             break;
     }
@@ -301,25 +302,44 @@ fanPowerLevel Fan::currentFanSpeed(void) {
 
 void Fan::turnDeviceOff(void) {
     onOffState = false;
-    switchToChannel(2);
+    prevState = this->currentFanSpeed();
+    this->setFanSpeed(0);
+    this->executeFanChanges();
     Serial.println("FAN OFF");
 }
 
 void Fan::turnDeviceOn(void) {
     onOffState = true;
-    this->setFanSpeed(Med);
+    prevState = prevState == OFF ? Med : prevState;
+    this->setFanSpeed(prevState);
+    this->executeFanChanges();
+    Serial.println("FAN ON");
 }
 
 void Fan::process(void) {
-    static int cycleCount = 0;
-    AnalogInputDebounced checkingForWiFiReset = AnalogInputDebounced(TASTI_READ, POWER_BTN_VOLTAGE);
-    checkingForWiFiReset.updateInput();
+    checkingForPowerButton.updateInput();
+    checkingForFanHiButton.updateInput();
+    checkingForFanMedButton.updateInput();
+    checkingForFanLowButton.updateInput();
 
-    if (checkingForWiFiReset.isActive() && cycleCount < FAN_WIFI_RESET_SIGNAL_TIMEOUT) {
-        cycleCount += 1;
-    } else {
-        cycleCount = 0;
+    if (checkingForPowerButton.isUniquelyActive()) {
+        onOffState = false;
+        fanSpeed = Off;
+    } else if (checkingForFanLowButton.isUniquelyActive()) {
+        onOffState = true;
+        fanSpeed = Low;
+    } else if (checkingForFanMedButton.isUniquelyActive()) {
+        onOffState = true;
+        fanSpeed = Med;
+    } else if (checkingForFanHiButton.isUniquelyActive()) {
+        onOffState = true;
+        fanSpeed = Hi;
+    // } else if (checkingForFanBoost.isLongPressed()) {
+    //     onOffState = true;
+    //     fanSpeed = Boost;
     }
+
+    updateLightState();
 }
 
 void Gesture::interruptRoutine() {
@@ -334,7 +354,9 @@ void Gesture::init(void) {
  pinMode(APDS9960_INT, INPUT);
 
  //apds = SparkFun_APDS9960();
- attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+ attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, RISING);
+
+ delay(40);
 
  // Initialize APDS-9960 (configure I2C and initial values)
  if ( apds.init() ) {
@@ -357,43 +379,43 @@ void Gesture::handleGesture() {
     if ( apds.isGestureAvailable() ) {
         switch ( apds.readGesture() ) {
           case DIR_UP:
-            Serial.println("UP");
-            gestureFlag = 1;
+//            Serial.println("UP");
+            gestureFlag = 2;
             lightBrightness += 50;
             lightBrightness = lightBrightness > 100 ? 100 : lightBrightness;
             lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_DOWN:
-            Serial.println("DOWN");
-            gestureFlag = 2;
+ //           Serial.println("DOWN");
+            gestureFlag = 1;
             lightBrightness -= 50;
             lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
             lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_LEFT:
-            Serial.println("LEFT");
-            gestureFlag = 3;
+  //          Serial.println("LEFT");
+            gestureFlag = 4;
             fanLevel -= 25;
             fanLevel = fanLevel < 0? 0 : fanLevel;
             fanDevice.setFanSpeed(fanLevel);
             break;
 
           case DIR_RIGHT:
-            Serial.println("RIGHT");
-            gestureFlag = 4;
+   //         Serial.println("RIGHT");
+            gestureFlag = 3;
             fanLevel += 25;
             fanLevel = fanLevel > 100 ? 100 : fanLevel;
             fanDevice.setFanSpeed(fanLevel);
             break;
 
           case DIR_NEAR:
-            Serial.println("NEAR");
+    //        Serial.println("NEAR");
             break;
 
           case DIR_FAR:
-            Serial.println("FAR");
+     //       Serial.println("FAR");
             break;
 
           default:
@@ -423,6 +445,7 @@ void Gesture::process(void) {
   if( isr_flag == 1 ) {
     detachInterrupt(APDS9960_INT);
     handleGesture();
+    Serial.println("PrintStuff");
     isr_flag = 0;
     attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
   }
@@ -431,24 +454,29 @@ void Gesture::process(void) {
   //  in case repetitive looping is required
   switch (gestureFlag) {
     case 0:
+//      Serial.println("Nothing");
       break;
 
     case 1:
+      Serial.println("Move up");
       lightDevice.executeLightChanges();
       gestureFlag = 0;
       break;
 
     case 2:
+      Serial.println("Move down");
       lightDevice.executeLightChanges();
       gestureFlag = 0;
       break;
 
     case 3:
+      Serial.println("Move left");
       fanDevice.executeFanChanges();
       gestureFlag = 0;
       break;
 
     case 4:
+      Serial.println("Move right");
       fanDevice.executeFanChanges();
       gestureFlag = 0;
       break;

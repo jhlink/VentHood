@@ -202,13 +202,13 @@ void setup() {
     // pinMode(GESTURE_SENSOR_2, INPUT);
     // pinMode(GESTURE_SENSOR_1, INPUT);
 
-//    Particle.function("setvalue", setPercentage);
-//    Particle.function("onoff", onoffDevice);
+    Particle.function("setvalue", setPercentage);
+    Particle.function("onoff", onoffDevice);
 }
 
 void loop() {
     //venthoodFan.process();
-    //venthoodLights.process();
+    venthoodLights.process();
     venthoodGesture.process();
 }
 
