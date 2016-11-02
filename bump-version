@@ -3,7 +3,7 @@
 version="$1"
 IFS=. read -r major minor build <<< "$version"
 
-sed -i  's/\(#define VENTHOOD_VERSION_MAJOR\).*/\1 '$major'/' vhmodel2.ino
-sed -i  's/\(#define VENTHOOD_VERSION_MINOR\).*/\1 '$minor'/' vhmodel2.ino
-sed -i  's/\(#define VENTHOOD_VERSION_PATCH\).*/\1 '$build'/' vhmodel2.ino
+sed -i  's/\(#define VENTHOOD_VERSION_MAJOR\).*/\1 '$major'/' venthoodsrc/vhmodel4.ino
+sed -i  's/\(#define VENTHOOD_VERSION_MINOR\).*/\1 '$minor'/' venthoodsrc/vhmodel4.ino
+sed -i  's/\(#define VENTHOOD_VERSION_PATCH\).*/\1 '$build'/' venthoodsrc/vhmodel4.ino
 #sed -i '' 's/version-.*-green.svg/version-'$version'-green.svg/g' README.md

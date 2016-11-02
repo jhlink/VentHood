@@ -26,7 +26,7 @@
 //  Version
 #define VENTHOOD_VERSION_MAJOR 0
 #define VENTHOOD_VERSION_MINOR 4
-#define VENTHOOD_VERSION_PATCH 2
+#define VENTHOOD_VERSION_PATCH 3
 
 //  Inputs pins
 
