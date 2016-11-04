@@ -226,7 +226,7 @@ void Light::process(void) {
 Fan::Fan(bool inputDeviceState = false) :
     Device(inputDeviceState), fanSpeed(Off), prevState(Off) {
 
-      checkingForFanLowButton  = AnalogInputDebounced(TASTI_READ,  FAN_LOW_BTN_VOLTAGE);
+      checkingForFanLowButton = AnalogInputDebounced(TASTI_READ,  FAN_LOW_BTN_VOLTAGE);
       checkingForFanMedButton = AnalogInputDebounced(TASTI_READ, FAN_MED_BTN_VOLTAGE);
       checkingForFanHiButton = AnalogInputDebounced(TASTI_READ, FAN_HI_BTN_VOLTAGE);
       checkingForPowerButton = AnalogInputDebounced(TASTI_READ, POWER_BTN_VOLTAGE);
@@ -334,13 +334,16 @@ void Fan::process(void) {
     } else if (checkingForFanHiButton.isUniquelyActive()) {
         onOffState = true;
         fanSpeed = Hi;
-    // } else if (checkingForFanBoost.isLongPressed()) {
-    //     onOffState = true;
-    //     fanSpeed = Boost;
+    } else if (checkingForFanBoost.isLongPressed()) {
+        onOffState = true;
+        fanSpeed = Boost;
     }
-
-    updateLightState();
 }
+
+
+// ---------------------
+//  GESTURE CLASS
+// ---------------------
 
 void Gesture::interruptRoutine() {
   isr_flag = 1;

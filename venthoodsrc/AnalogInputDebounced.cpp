@@ -23,36 +23,15 @@
 
 #include "AnalogInputDebounced.h"
 
-#define DEBOUNCE_COUNT 2
-#define UPDATETIME 10
-
 template <typename T>
 bool AnalogInputDebounced::checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound) {
   return (valueToCheck >= lowerBound) && (valueToCheck <= upperBound);
 }
 
-AnalogInputDebounced::AnalogInputDebounced(void) {
-  m_pin = -1;
-  m_prevState = false;
-  m_inputState = false;
-  m_count = -1;
-  m_voltagePoint = -1;
-  m_toleranceVoltageRange = -1;
-}
+AnalogInputDebounced::AnalogInputDebounced(void) : m_prevState(false), m_inputState(false), m_count(0), m_pin(-1), m_voltagePoint(-1), longPressTimeout(0) {}
 
-
-AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) {
-  m_pin = pin;
-  m_prevState = false;
-  m_inputState = false;
-  m_count = 0;
-  m_voltagePoint = targetVoltage;
-  m_toleranceVoltageRange = 100;
-}
-
-void AnalogInputDebounced::setVoltToleranceRange(int newBoundary) {
-  m_toleranceVoltageRange = newBoundary;
-}
+AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage, long longPressLength) : m_prevState(false), m_inputState(false), m_count(0), m_pin(pin), m_voltagePoint(targetVoltage), longPressTimeout(longPressLength)
+{}
 
 void AnalogInputDebounced::updateInput(void) {
   static unsigned long prevTime = millis();
@@ -64,8 +43,8 @@ void AnalogInputDebounced::updateInput(void) {
   }
 
   int currentAnalogReading = analogRead(m_pin);
-  int lowerBoundInclusive = m_voltagePoint - m_toleranceVoltageRange;
-  int upperBoundInclusive = m_voltagePoint + m_toleranceVoltageRange;
+  int lowerBoundInclusive = m_voltagePoint - VOLTAGE_TOLERANCE_RANGE;
+  int upperBoundInclusive = m_voltagePoint + VOLTAGE_TOLERANCE_RANGE;
 
   if (checkInRange(currentAnalogReading, lowerBoundInclusive, upperBoundInclusive)) {
     if (m_count < DEBOUNCE_COUNT) {
@@ -85,6 +64,7 @@ void AnalogInputDebounced::updateInput(void) {
 bool AnalogInputDebounced::isUniquelyActive(void) {
   if ((m_inputState == true) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
+    longPressTime = millis();
     return true;
   } else if ((m_inputState == false) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
@@ -93,7 +73,22 @@ bool AnalogInputDebounced::isUniquelyActive(void) {
 }
 
 bool AnalogInputDebounced::isLongPressed(void) {
+  if ((m_inputState == true) && (m_prevState != m_inputState) &&
+      ((millis() - pastTime) > LONG_PRESS_TIMEOUT)) {
+      
+      m_prevState = m_inputState;
+    return true;
+  } else {
+    longPressTime = millis();
+  }
+  return false;
 
+
+  if ((millis() - prevTime) < UPDATETIME) {
+    return;
+  } else {
+    prevTime = millis();
+  }
 }
 
 bool AnalogInputDebounced::isActive(void) {

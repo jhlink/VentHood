@@ -26,6 +26,9 @@
 #ifndef ANALOG_INPUT_DEBOUNCED_H
 #define ANALOG_INPUT_DEBOUNCED_H
 
+#define DEBOUNCE_COUNT 2
+#define UPDATETIME 10
+#define VOLTAGE_TOLERANCE_RANGE 100
 
 class AnalogInputDebounced {
   public:
@@ -35,7 +38,6 @@ class AnalogInputDebounced {
     bool isActive(void);
     bool isUniquelyActive(void);
     bool isLongPressed(void);
-    void setVoltToleranceRange(int newBoundary);
 
   private:
     bool m_prevState;
@@ -43,9 +45,7 @@ class AnalogInputDebounced {
     int m_count;
     int m_pin;
     int m_voltagePoint;
-    int m_toleranceVoltageRange;
-
-    int analogVoltageValue(float inputVolt);
+    unsigned long longPressTimeout;
 
     template <typename T>
     bool checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound);
