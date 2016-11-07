@@ -374,6 +374,13 @@ void Gesture::init(void) {
  } else {
    Serial.println(F("Something went wrong during gesture sensor init!"));
  }
+
+ // Start running the APDS-9960 gesture sensor engine
+ if ( apds.enableProximitySensor(false) ) {
+   Serial.println(F("Gesture sensor is now running"));
+ } else {
+   Serial.println(F("Something went wrong during gesture sensor init!"));
+ }
 }
 
 void Gesture::handleGesture() {
@@ -451,6 +458,14 @@ void Gesture::process(void) {
     Serial.println("PrintStuff");
     isr_flag = 0;
     attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+  }
+
+  static unsigned long prevTime = millis();
+  if ((millis() - prevTime) > 500) {
+    uint8_t value = 0;
+    readProximity(value);
+    Serial.print("This is current distance ADC: ");
+    Serial.println(value);
   }
 
   // Cases corresponding to certain Gesture Flags
