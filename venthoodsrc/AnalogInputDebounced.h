@@ -37,7 +37,7 @@ class AnalogInputDebounced {
     void updateInput(void);
     bool isActive(void);
     bool isUniquelyActive(void);
-    bool isLongPressed(void);
+    //bool isLongPressed(void);
 
   private:
     bool m_prevState;

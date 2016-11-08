@@ -280,6 +280,8 @@ void Fan::executeFanChanges(void) {
             break;
 
         case Hi:
+            switchToChannel(2);
+            delay(100);
             switchToChannel(5);
             Serial.println("FAN HIGH SPEED");
             break;
@@ -334,10 +336,11 @@ void Fan::process(void) {
     } else if (checkingForFanHiButton.isUniquelyActive()) {
         onOffState = true;
         fanSpeed = Hi;
-    } else if (checkingForFanBoost.isLongPressed()) {
-        onOffState = true;
-        fanSpeed = Boost;
     }
+    //} else if (checkingForFanBoost.isLongPressed()) {
+    //    onOffState = true;
+    //    fanSpeed = Boost;
+    //}
 }
 
 
@@ -359,7 +362,7 @@ void Gesture::init(void) {
  //apds = SparkFun_APDS9960();
  attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, RISING);
 
- delay(40);
+ delay(750);
 
  // Initialize APDS-9960 (configure I2C and initial values)
  if ( apds.init() ) {
@@ -389,35 +392,30 @@ void Gesture::handleGesture() {
     if ( apds.isGestureAvailable() ) {
         switch ( apds.readGesture() ) {
           case DIR_UP:
-//            Serial.println("UP");
             gestureFlag = 2;
-            lightBrightness += 50;
-            lightBrightness = lightBrightness > 100 ? 100 : lightBrightness;
-            lightDevice.setBrightnessTo(lightBrightness);
+            fanLevel += 25;
+            fanLevel = fanLevel > 100 ? 0 : fanLevel;
+            fanDevice.setFanSpeed(fanLevel);
             break;
 
           case DIR_DOWN:
- //           Serial.println("DOWN");
             gestureFlag = 1;
-            lightBrightness -= 50;
-            lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
-            lightDevice.setBrightnessTo(lightBrightness);
+            fanLevel -= 25;
+            fanLevel = fanLevel < 0? 100 : fanLevel;
+            fanDevice.setFanSpeed(fanLevel);
             break;
 
           case DIR_LEFT:
-  //          Serial.println("LEFT");
             gestureFlag = 4;
-            fanLevel -= 25;
-            fanLevel = fanLevel < 0? 0 : fanLevel;
-            fanDevice.setFanSpeed(fanLevel);
+            lightBrightness += 50;
+            lightBrightness = lightBrightness > 100 ? 0 : lightBrightness;
+            lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_RIGHT:
-   //         Serial.println("RIGHT");
-            gestureFlag = 3;
-            fanLevel += 25;
-            fanLevel = fanLevel > 100 ? 100 : fanLevel;
-            fanDevice.setFanSpeed(fanLevel);
+            lightBrightness -= 50;
+            lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
+            lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_NEAR:
@@ -455,7 +453,7 @@ void Gesture::process(void) {
   if( isr_flag == 1 ) {
     detachInterrupt(APDS9960_INT);
     handleGesture();
-    Serial.println("PrintStuff");
+    //Serial.println("PrintStuff");
     isr_flag = 0;
     attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
   }
@@ -463,9 +461,9 @@ void Gesture::process(void) {
   static unsigned long prevTime = millis();
   if ((millis() - prevTime) > 500) {
     uint8_t value = 0;
-    readProximity(value);
-    Serial.print("This is current distance ADC: ");
-    Serial.println(value);
+  //  apds.readProximity(value);
+  //  Serial.print("This is current distance ADC: ");
+  //  Serial.println(value);
   }
 
   // Cases corresponding to certain Gesture Flags
@@ -476,26 +474,26 @@ void Gesture::process(void) {
       break;
 
     case 1:
-      Serial.println("Move up");
-      lightDevice.executeLightChanges();
-      gestureFlag = 0;
-      break;
-
-    case 2:
-      Serial.println("Move down");
-      lightDevice.executeLightChanges();
-      gestureFlag = 0;
-      break;
-
-    case 3:
       Serial.println("Move left");
       fanDevice.executeFanChanges();
       gestureFlag = 0;
       break;
 
-    case 4:
+    case 2:
       Serial.println("Move right");
       fanDevice.executeFanChanges();
+      gestureFlag = 0;
+      break;
+
+    case 3:
+//      Serial.println("Move left");
+//      fanDevice.executeFanChanges();
+//      gestureFlag = 0;
+      break;
+
+    case 4:
+      Serial.println("Move up");
+      lightDevice.executeLightChanges();
       gestureFlag = 0;
       break;
 
