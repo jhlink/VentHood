@@ -1,5 +1,6 @@
 #include "venthood-devices.h"
 
+
 // ---------------------
 //  Santa's Little Helper Functions
 // ---------------------
@@ -280,8 +281,8 @@ void Fan::executeFanChanges(void) {
             break;
 
         case Hi:
-            switchToChannel(2);
-            delay(100);
+            //switchToChannel(2);
+            //delay(100);
             switchToChannel(5);
             Serial.println("FAN HIGH SPEED");
             break;
@@ -392,27 +393,38 @@ void Gesture::handleGesture() {
     if ( apds.isGestureAvailable() ) {
         switch ( apds.readGesture() ) {
           case DIR_UP:
+            // DIR_UP is right swipe
             gestureFlag = 2;
-            fanLevel += 25;
-            fanLevel = fanLevel > 100 ? 0 : fanLevel;
+            fanLevel -= 25;
+            fanLevel = fanLevel < 0 ? 75 : fanLevel;
             fanDevice.setFanSpeed(fanLevel);
             break;
 
           case DIR_DOWN:
-            gestureFlag = 1;
-            fanLevel -= 25;
-            fanLevel = fanLevel < 0? 100 : fanLevel;
-            fanDevice.setFanSpeed(fanLevel);
+            // DIR_DOWN is left swipe
+            gestureFlag = 4;
+            lightBrightness -= 50;
+            lightBrightness = lightBrightness < 0 ? 100 : lightBrightness;
+            lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_LEFT:
-            gestureFlag = 4;
-            lightBrightness += 50;
-            lightBrightness = lightBrightness > 100 ? 0 : lightBrightness;
+            // DIR_LEFT is up swipe
+            gestureFlag = 1;
+
+            if (fanLevel != 0 || lightBrightness != 0) {
+              fanLevel = 0;
+              lightBrightness = 0;
+            } else {
+              fanLevel = 75;
+              lightBrightness = 100;
+            }
+            fanDevice.setFanSpeed(fanLevel);
             lightDevice.setBrightnessTo(lightBrightness);
             break;
 
           case DIR_RIGHT:
+            // DIR_RIGHT is down swipe
             lightBrightness -= 50;
             lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
             lightDevice.setBrightnessTo(lightBrightness);
@@ -474,8 +486,10 @@ void Gesture::process(void) {
       break;
 
     case 1:
-      Serial.println("Move left");
+      Serial.println("Move up");
       fanDevice.executeFanChanges();
+      delay(100);
+      lightDevice.executeLightChanges();
       gestureFlag = 0;
       break;
 
@@ -492,7 +506,7 @@ void Gesture::process(void) {
       break;
 
     case 4:
-      Serial.println("Move up");
+      Serial.println("Move left");
       lightDevice.executeLightChanges();
       gestureFlag = 0;
       break;
