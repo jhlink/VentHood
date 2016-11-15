@@ -18,15 +18,15 @@
 #include "application.h"
 
 /* Debug */
-#define DEBUG                   0
+#define DEBUG                   1
 
 /* APDS-9960 I2C address */
 #define APDS9960_I2C_ADDR       0x39
 
 /* Gesture parameters */
 #define GESTURE_THRESHOLD_OUT   10
-#define GESTURE_SENSITIVITY_1   50
-#define GESTURE_SENSITIVITY_2   20
+#define GESTURE_SENSITIVITY_1   30
+#define GESTURE_SENSITIVITY_2   200
 
 /* Error code for returned values */
 #define ERROR                   0xFF
@@ -171,7 +171,7 @@
 #define DEFAULT_PERS            0x11    // 2 consecutive prox or ALS for int.
 #define DEFAULT_CONFIG2         0x01    // No saturation interrupts or LED boost
 #define DEFAULT_CONFIG3         0       // Enable all photodiodes, no SAI
-#define DEFAULT_GPENTH          70      // Threshold for entering gesture mode
+#define DEFAULT_GPENTH          40    // Threshold for entering gesture mode
 #define DEFAULT_GEXTH           40      // Threshold for exiting gesture mode
 #define DEFAULT_GCONF1          0x40    // 4 gesture events for int., 1 for exit
 #define DEFAULT_GGAIN           GGAIN_4X

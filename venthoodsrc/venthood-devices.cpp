@@ -363,7 +363,7 @@ void Gesture::init(void) {
  //apds = SparkFun_APDS9960();
  attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, RISING);
 
- delay(750);
+ delay(1000);
 
  // Initialize APDS-9960 (configure I2C and initial values)
  if ( apds.init() ) {

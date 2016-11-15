@@ -472,11 +472,14 @@ int SparkFun_APDS9960::readGesture()
     int i;
 
     /* Make sure that power and gesture is on and data is valid */
-    if( !isGestureAvailable() || !(getMode() & 0b01000001) ) {
+    if ( !isGestureAvailable() || !(getMode() & 0b01000001) ) {
         return DIR_NONE;
     }
 
     /* Keep looping as long as gesture data is valid */
+
+    static unsigned long prevTime = millis();
+    prevTime = millis();
     while(1) {
 
         /* Wait some time to collect next batch of FIFO data */
@@ -533,20 +536,20 @@ int SparkFun_APDS9960::readGesture()
                     }
 
 #if DEBUG
-                Serial.print("Up Data: ");
-                for ( i = 0; i < gesture_data_.total_gestures; i++ ) {
-                    Serial.print(gesture_data_.u_data[i]);
-                    Serial.print(" ");
-                }
-                Serial.println();
+                    Serial.print("Up Data: ");
+                    for ( i = 0; i < gesture_data_.total_gestures; i++ ) {
+                        Serial.print(gesture_data_.u_data[i]);
+                        Serial.print(" ");
+                    }
+                    Serial.println();
 #endif
 
                     /* Filter and process gesture data. Decode near/far state */
-                    if( processGestureData() ) {
-                        if( decodeGesture() ) {
+                    if ( processGestureData() ) {
+                        if ( decodeGesture() ) {
                             //***TODO: U-Turn Gestures
 #if DEBUG
-                            //Serial.println(gesture_motion_);
+                            Serial.println(gesture_motion_);
 #endif
                         }
                     }
@@ -760,8 +763,7 @@ void SparkFun_APDS9960::resetGestureParameters()
  *
  * @return True if near or far state seen. False otherwise.
  */
-bool SparkFun_APDS9960::processGestureData()
-{
+bool SparkFun_APDS9960::processGestureData() {
     uint8_t u_first = 0;
     uint8_t d_first = 0;
     uint8_t l_first = 0;
