@@ -36,7 +36,7 @@
 #define APDS9960_ID_2           0x9C
 
 /* Misc parameters */
-#define FIFO_PAUSE_TIME         30      // Wait period (ms) between FIFO reads
+#define FIFO_PAUSE_TIME         80      // Wait period (ms) between FIFO reads
 
 /* APDS-9960 register addresses */
 #define APDS9960_ENABLE         0x80
@@ -164,15 +164,15 @@
 #define DEFAULT_LDRIVE          LED_DRIVE_100MA
 #define DEFAULT_PGAIN           PGAIN_4X
 #define DEFAULT_AGAIN           AGAIN_4X
-#define DEFAULT_PILT            0       // Low proximity threshold
-#define DEFAULT_PIHT            50      // High proximity threshold
+#define DEFAULT_PILT            0      // Low proximity threshold
+#define DEFAULT_PIHT            0      // High proximity threshold
 #define DEFAULT_AILT            0xFFFF  // Force interrupt for calibration
 #define DEFAULT_AIHT            0
-#define DEFAULT_PERS            0x11    // 2 consecutive prox or ALS for int.
+#define DEFAULT_PERS            0x11   // 2 consecutive prox or ALS for int.
 #define DEFAULT_CONFIG2         0x01    // No saturation interrupts or LED boost
 #define DEFAULT_CONFIG3         0       // Enable all photodiodes, no SAI
-#define DEFAULT_GPENTH          40    // Threshold for entering gesture mode
-#define DEFAULT_GEXTH           40      // Threshold for exiting gesture mode
+#define DEFAULT_GPENTH          15    // Threshold for entering gesture mode
+#define DEFAULT_GEXTH           35      // Threshold for exiting gesture mode
 #define DEFAULT_GCONF1          0x40    // 4 gesture events for int., 1 for exit
 #define DEFAULT_GGAIN           GGAIN_4X
 #define DEFAULT_GLDRIVE         LED_DRIVE_100MA

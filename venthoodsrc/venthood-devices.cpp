@@ -362,7 +362,6 @@ void Gesture::init(void) {
 
  //apds = SparkFun_APDS9960();
  attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, RISING);
-
  delay(1000);
 
  // Initialize APDS-9960 (configure I2C and initial values)
@@ -381,9 +380,9 @@ void Gesture::init(void) {
 
  // Start running the APDS-9960 gesture sensor engine
  if ( apds.enableProximitySensor(false) ) {
-   Serial.println(F("Gesture sensor is now running"));
+   Serial.println(F("Proximity sensor is now running"));
  } else {
-   Serial.println(F("Something went wrong during gesture sensor init!"));
+   Serial.println(F("Something went wrong during proximity sensor init!"));
  }
 }
 
@@ -463,26 +462,26 @@ bool Gesture::getDeviceState(void) {
 
 void Gesture::process(void) {
   if( isr_flag == 1 ) {
-    detachInterrupt(APDS9960_INT);
+    // detachInterrupt(APDS9960_INT);
+    apds.setGestureIntEnable(0);
     handleGesture();
-    //Serial.println("PrintStuff");
-    isr_flag = 0;
-    attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+    Serial.println("PrintStuff");
   }
 
   static unsigned long prevTime = millis();
-  if ((millis() - prevTime) > 500) {
+  if ((millis() - prevTime) > 1000) {
     uint8_t value = 0;
-  //  apds.readProximity(value);
-  //  Serial.print("This is current distance ADC: ");
-  //  Serial.println(value);
+    // apds.readProximity(value);
+    // Serial.println();
+    // Serial.print("This is current distance ADC: ");
+    // Serial.println(value);
   }
 
   // Cases corresponding to certain Gesture Flags
   //  in case repetitive looping is required
   switch (gestureFlag) {
     case 0:
-//      Serial.println("Nothing");
+    //      Serial.println("Nothing");
       break;
 
     case 1:
@@ -514,5 +513,12 @@ void Gesture::process(void) {
     default:
       gestureFlag = 0;
       break;
+  }
+
+  if (isr_flag == 1) {
+    // delay(250);
+    isr_flag = 0;
+    apds.setGestureIntEnable(1);
+    attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
   }
 }

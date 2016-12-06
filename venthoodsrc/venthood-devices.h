@@ -3,7 +3,8 @@
 
 #include <application.h>
 #include "AnalogInputDebounced.h"
-#include "SparkFun_APDS9960.h" #include "assert.h"
+#include "SparkFun_APDS9960.h"
+#include "assert.h"
 
 #ifndef CH_A
 #define CH_A D2

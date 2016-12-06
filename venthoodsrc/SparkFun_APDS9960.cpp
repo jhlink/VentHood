@@ -55,6 +55,7 @@ SparkFun_APDS9960::~SparkFun_APDS9960()
  */
 bool SparkFun_APDS9960::init()
 {
+    resetGestureParameters();
     uint8_t id;
 
     /* Initialize I2C */
@@ -73,7 +74,7 @@ bool SparkFun_APDS9960::init()
         return false;
     }
 
-    /* Set default values for ambient light and proximity registers */
+    /* Set default values for ambient light an55 255 d proximity registers */
     if( !wireWriteDataByte(APDS9960_ATIME, DEFAULT_ATIME) ) {
         return false;
     }
@@ -481,6 +482,7 @@ int SparkFun_APDS9960::readGesture()
     static unsigned long prevTime = millis();
     prevTime = millis();
     while(1) {
+
 
         /* Wait some time to collect next batch of FIFO data */
         delay(FIFO_PAUSE_TIME);

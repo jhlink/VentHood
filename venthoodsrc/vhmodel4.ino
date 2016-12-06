@@ -25,8 +25,8 @@
 
 //  Version
 #define VENTHOOD_VERSION_MAJOR 0
-#define VENTHOOD_VERSION_MINOR 
-#define VENTHOOD_VERSION_PATCH 
+#define VENTHOOD_VERSION_MINOR
+#define VENTHOOD_VERSION_PATCH
 
 //  Inputs pins
 
@@ -210,6 +210,11 @@ void loop() {
     //venthoodFan.process();
     venthoodLights.process();
     venthoodGesture.process();
+    static unsigned long prevTime = millis();
+    if ((millis() - prevTime) > 5000) {
+      Serial.println("TESTING TESTING");
+      prevTime = millis();
+    }
 }
 
 int onoffDevice(String args) {
