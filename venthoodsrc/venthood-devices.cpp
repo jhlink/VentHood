@@ -361,10 +361,11 @@ void Gesture::init(void) {
  pinMode(APDS9960_INT, INPUT);
 
  //apds = SparkFun_APDS9960();
- attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, RISING);
+ attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
  delay(1000);
 
  // Initialize APDS-9960 (configure I2C and initial values)
+
  if ( apds.init() ) {
    Serial.println(F("APDS-9960 initialization complete"));
  } else {
@@ -392,25 +393,30 @@ void Gesture::handleGesture() {
     if ( apds.isGestureAvailable() ) {
         switch ( apds.readGesture() ) {
           case DIR_UP:
-            // DIR_UP is right swipe
-            gestureFlag = 2;
-            fanLevel -= 25;
-            fanLevel = fanLevel < 0 ? 75 : fanLevel;
-            fanDevice.setFanSpeed(fanLevel);
-            break;
-
-          case DIR_DOWN:
-            // DIR_DOWN is left swipe
             gestureFlag = 4;
             lightBrightness -= 50;
             lightBrightness = lightBrightness < 0 ? 100 : lightBrightness;
             lightDevice.setBrightnessTo(lightBrightness);
             break;
 
-          case DIR_LEFT:
-            // DIR_LEFT is up swipe
-            gestureFlag = 1;
+          case DIR_DOWN:
+            gestureFlag = 2;
+            fanLevel -= 25;
+            fanLevel = fanLevel < 0 ? 75 : fanLevel;
+            fanDevice.setFanSpeed(fanLevel);
+            break;
 
+          case DIR_LEFT:
+
+            //gestureFlag = 1;
+            //lightBrightness -= 50;
+            //lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
+            //lightDevice.setBrightnessTo(lightBrightness);
+
+            break;
+
+          case DIR_RIGHT:
+            gestureFlag = 3;
             if (fanLevel != 0 || lightBrightness != 0) {
               fanLevel = 0;
               lightBrightness = 0;
@@ -419,13 +425,6 @@ void Gesture::handleGesture() {
               lightBrightness = 100;
             }
             fanDevice.setFanSpeed(fanLevel);
-            lightDevice.setBrightnessTo(lightBrightness);
-            break;
-
-          case DIR_RIGHT:
-            // DIR_RIGHT is down swipe
-            lightBrightness -= 50;
-            lightBrightness = lightBrightness < 0 ? 0 : lightBrightness;
             lightDevice.setBrightnessTo(lightBrightness);
             break;
 
@@ -461,8 +460,11 @@ bool Gesture::getDeviceState(void) {
 }
 
 void Gesture::process(void) {
+  unsigned long count;
   if( isr_flag == 1 ) {
     // detachInterrupt(APDS9960_INT);
+
+    count = millis();
     apds.setGestureIntEnable(0);
     handleGesture();
     Serial.println("PrintStuff");
@@ -485,40 +487,37 @@ void Gesture::process(void) {
       break;
 
     case 1:
-      Serial.println("Move up");
-      fanDevice.executeFanChanges();
-      delay(100);
-      lightDevice.executeLightChanges();
-      gestureFlag = 0;
       break;
 
     case 2:
       Serial.println("Move right");
       fanDevice.executeFanChanges();
-      gestureFlag = 0;
       break;
 
     case 3:
-//      Serial.println("Move left");
-//      fanDevice.executeFanChanges();
-//      gestureFlag = 0;
+      Serial.println("Move up");
+      fanDevice.executeFanChanges();
+      delay(100);
+      lightDevice.executeLightChanges();
       break;
 
     case 4:
       Serial.println("Move left");
       lightDevice.executeLightChanges();
-      gestureFlag = 0;
       break;
 
     default:
-      gestureFlag = 0;
       break;
   }
 
   if (isr_flag == 1) {
-    // delay(250);
+    gestureFlag = 0;
+    unsigned long resultTime = millis() - count;
+    Serial.print("\n\nCOMPLETE GESTURE ENTRY TO EXIT TIME: ");
+    Serial.println(resultTime);
+    delay(250);
     isr_flag = 0;
     apds.setGestureIntEnable(1);
-    attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
+    //attachInterrupt(APDS9960_INT, &Gesture::interruptRoutine, this, FALLING);
   }
 }

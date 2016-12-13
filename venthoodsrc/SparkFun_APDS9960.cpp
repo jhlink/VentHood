@@ -55,11 +55,18 @@ SparkFun_APDS9960::~SparkFun_APDS9960()
  */
 bool SparkFun_APDS9960::init()
 {
-    resetGestureParameters();
     uint8_t id;
 
-    /* Initialize I2C */
-    Wire.begin();
+    resetGestureParameters();
+
+    if (Wire.isEnabled()) {
+      Wire.reset();
+      Wire.end();
+      Wire.begin();
+    } else {
+      /* Initialize I2C */
+      Wire.begin();
+    }
 
     /* Read ID register and check against known values for APDS-9960 */
     if( !wireReadDataByte(APDS9960_ID, id) ) {

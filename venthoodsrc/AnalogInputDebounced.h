@@ -27,7 +27,8 @@
 #define ANALOG_INPUT_DEBOUNCED_H
 
 #define DEBOUNCE_COUNT 2
-#define UPDATETIME 10
+#define UPDATE_TIME 10
+#define LONG_PRESS_TIMEOUT 2000
 #define VOLTAGE_TOLERANCE_RANGE 100
 
 class AnalogInputDebounced {

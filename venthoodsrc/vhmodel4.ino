@@ -199,9 +199,6 @@ void setup() {
     venthoodGesture.init();
     functionTest.stop();
 
-    // pinMode(GESTURE_SENSOR_2, INPUT);
-    // pinMode(GESTURE_SENSOR_1, INPUT);
-
     Particle.function("setvalue", setPercentage);
     Particle.function("onoff", onoffDevice);
 }
