@@ -25,8 +25,8 @@
 
 //  Version
 #define VENTHOOD_VERSION_MAJOR 0
-#define VENTHOOD_VERSION_MINOR
-#define VENTHOOD_VERSION_PATCH
+#define VENTHOOD_VERSION_MINOR 2
+#define VENTHOOD_VERSION_PATCH 0
 
 //  Inputs pins
 
@@ -189,7 +189,7 @@ Timer functionTest(5000, beammeup);
 
 void setup() {
     Serial.begin(9600);
-    while(!Serial);
+    //while(!Serial);
     pinMode(CH_A, OUTPUT);
     pinMode(CH_B, OUTPUT);
     pinMode(CH_C, OUTPUT);
@@ -204,13 +204,18 @@ void setup() {
 }
 
 void loop() {
-    //venthoodFan.process();
+    venthoodFan.process();
     venthoodLights.process();
     venthoodGesture.process();
     static unsigned long prevTime = millis();
     if ((millis() - prevTime) > 5000) {
       Serial.println("TESTING TESTING");
       prevTime = millis();
+    }
+
+    if (venthoodFan.getLongPressedBoolean()) {
+      venthoodLights.turnDeviceOff();
+      venthoodFan.setLongPressedBoolean(false);
     }
 }
 

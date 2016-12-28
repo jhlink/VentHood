@@ -28,7 +28,6 @@
 
 #define DEBOUNCE_COUNT 2
 #define UPDATE_TIME 10
-#define LONG_PRESS_TIMEOUT 2000
 #define VOLTAGE_TOLERANCE_RANGE 100
 
 class AnalogInputDebounced {
@@ -38,7 +37,7 @@ class AnalogInputDebounced {
     void updateInput(void);
     bool isActive(void);
     bool isUniquelyActive(void);
-    //bool isLongPressed(void);
+    bool isLongPressed(void);
 
   private:
     bool m_prevState;
@@ -46,7 +45,9 @@ class AnalogInputDebounced {
     int m_count;
     int m_pin;
     int m_voltagePoint;
-    unsigned long longPressTimeout;
+    unsigned long m_longPressTimeout;
+    unsigned long m_longPressTimeTracker;
+    unsigned long m_timeTracker;
 
     template <typename T>
     bool checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound);

@@ -225,7 +225,7 @@ void Light::process(void) {
 
 
 Fan::Fan(bool inputDeviceState = false) :
-    Device(inputDeviceState), fanSpeed(Off), prevState(Off) {
+    Device(inputDeviceState), fanSpeed(Off), prevState(Off), longPressedBtn(false) {
 
       checkingForFanLowButton = AnalogInputDebounced(TASTI_READ,  FAN_LOW_BTN_VOLTAGE);
       checkingForFanMedButton = AnalogInputDebounced(TASTI_READ, FAN_MED_BTN_VOLTAGE);
@@ -337,13 +337,21 @@ void Fan::process(void) {
     } else if (checkingForFanHiButton.isUniquelyActive()) {
         onOffState = true;
         fanSpeed = Hi;
+    } else if (checkingForFanHiButton.isLongPressed()) {
+        onOffState = true;
+        longPressedBtn = true;
+        fanSpeed = Boost;
     }
-    //} else if (checkingForFanBoost.isLongPressed()) {
-    //    onOffState = true;
-    //    fanSpeed = Boost;
-    //}
 }
 
+
+bool Fan::getLongPressedBoolean() {
+    return longPressedBtn;
+}
+
+void Fan::setLongPressedBoolean(bool inputBool) {
+    longPressedBtn = inputBool;
+}
 
 // ---------------------
 //  GESTURE CLASS

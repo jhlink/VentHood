@@ -28,18 +28,17 @@ bool AnalogInputDebounced::checkInRange(const T& valueToCheck, const T& lowerBou
   return (valueToCheck >= lowerBound) && (valueToCheck <= upperBound);
 }
 
-AnalogInputDebounced::AnalogInputDebounced(void) : m_prevState(false), m_inputState(false), m_count(0), m_pin(-1), m_voltagePoint(-1) {}
+AnalogInputDebounced::AnalogInputDebounced(void) : m_prevState(false), m_inputState(false), m_count(0), m_pin(-1), m_voltagePoint(-1), m_longPressTimeout(2000), m_longPressTimeTracker(-1), m_timeTracker(millis()) {}
 
-AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) : m_prevState(false), m_inputState(false), m_count(0), m_pin(pin), m_voltagePoint(targetVoltage)
+AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) : m_prevState(false), m_inputState(false), m_count(0), m_pin(pin), m_voltagePoint(targetVoltage), m_longPressTimeout(2000), m_longPressTimeTracker(-1), m_timeTracker(millis())
 {}
 
 void AnalogInputDebounced::updateInput(void) {
-  static unsigned long prevTime = millis();
 
-  if ((millis() - prevTime) < UPDATE_TIME) {
+  if ((millis() - m_timeTracker) < UPDATE_TIME) {
     return;
   } else {
-    prevTime = millis();
+    m_timeTracker = millis();
   }
 
   int currentAnalogReading = analogRead(m_pin);
@@ -64,7 +63,7 @@ void AnalogInputDebounced::updateInput(void) {
 bool AnalogInputDebounced::isUniquelyActive(void) {
   if ((m_inputState == true) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
-    //longPressTime = millis();
+    m_longPressTimeTracker = millis();
     return true;
   } else if ((m_inputState == false) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
@@ -72,24 +71,17 @@ bool AnalogInputDebounced::isUniquelyActive(void) {
   return false;
 }
 
-// bool AnalogInputDebounced::isLongPressed(void) {
-//   if ((m_inputState == true) && (m_prevState != m_inputState) &&
-//       ((millis() - longPressTime) > LONG_PRESS_TIMEOUT)) {
-//
-//       m_prevState = m_inputState;
-//     return true;
-//   } else {
-//     longPressTime = millis();
-//   }
-//   return false;
-//
-//
-// if ((millis() - prevTime) < UPDATE_TIME) {
-//     return;
-//   } else {
-//     prevTime = millis();
-//   }
-// }
+bool AnalogInputDebounced::isLongPressed(void) {
+  if (m_longPressTimeTracker == -1 ) {
+    return false;
+  }
+
+  if (((millis() - m_longPressTimeTracker) > m_longPressTimeout) && m_inputState == false) {
+    m_longPressTimeTracker = -1;
+    return true;
+  }
+  return false;
+}
 
 bool AnalogInputDebounced::isActive(void) {
   return m_inputState;

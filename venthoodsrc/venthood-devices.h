@@ -91,6 +91,7 @@ class Fan : public Device {
         AnalogInputDebounced checkingForFanMedButton;
         AnalogInputDebounced checkingForFanHiButton;
         AnalogInputDebounced checkingForPowerButton;
+        bool longPressedBtn;
 
         void setupFanRelayPins(void);
 
@@ -102,6 +103,8 @@ class Fan : public Device {
         void turnDeviceOff(void);
         void turnDeviceOn(void);
         void process(void);
+        bool getLongPressedBoolean();
+        void setLongPressedBoolean(bool inputBool);
 };
 
 class Gesture: public Device {
