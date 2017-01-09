@@ -196,7 +196,7 @@ void Light::turnDeviceOn(void) {
       return;
     }
     onOffState = true;
-    this->setBrightnessTo(prevState);
+    this->setBrightnessTo(100);
     this->executeLightChanges();
     Serial.println("LIGHT ON");
 }
@@ -313,7 +313,7 @@ void Fan::turnDeviceOff(void) {
 
 void Fan::turnDeviceOn(void) {
     onOffState = true;
-    prevState = prevState == OFF ? Med : prevState;
+    prevState = prevState == OFF ? Hi : prevState;
     this->setFanSpeed(prevState);
     this->executeFanChanges();
     Serial.println("FAN ON");
