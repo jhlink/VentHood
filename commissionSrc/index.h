@@ -11,8 +11,7 @@ const char index_html[] =
         <h2>Connect me to your WiFi!</h2>\
         <div id='scan-div'>\
             <h3>Scan for visible WiFi networks</h3>\
-            <button id='scan-button' type='button'>Scan</button>\
-        </div>\
+            <button id='scan-button' type='button'>Scan</button></div>\
         <div id='networks-div'></div>\
         <div id='connect-div' style='display: none'>\
             <p>Don't see your network? Move me closer to your router, then re-scan.</p>\

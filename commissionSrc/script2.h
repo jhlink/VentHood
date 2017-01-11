@@ -1,5 +1,4 @@
-const char script_js[] =
-"var base_url = 'http://192.168.0.1/';\
+const char script_js[] = "var base_url = 'http://192.168.0.1/';\
 var network_list;\
 var public_key;\
 var rsa = new RSAKey();\
@@ -32,13 +31,13 @@ var device_id_callback = {\
     }\
 };\
 var scan = function() {\
-    console.log('Scanning...!');\
-    disableButtons();\
-    scanButton.innerHTML = 'Scanning...';\
-    connectButton.innerHTML = 'Connect';\
-    document.getElementById('connect-div').style.display = 'none';\
-    document.getElementById('networks-div').style.display = 'none';\
-    getRequest(base_url + 'scan-ap', scan_callback);\
+  console.log('Scanning...!');\
+  disableButtons();\
+  scanButton.innerHTML = 'Scanning...';\
+  connectButton.innerHTML = 'Connect';\
+  document.getElementById('connect-div').style.display = 'none';\
+  document.getElementById('networks-div').style.display = 'none';\
+  getRequest(base_url + 'scan-ap', scan_callback);\
 };\
 var scan_callback = {\
     success: function(a) {\
@@ -52,13 +51,11 @@ var scan_callback = {\
                 console.log(network_list[c]);\
                 add_wifi_option(b, ssid);\
                 document.getElementById('connect-div').style.display = 'block';\
-            } else b.innerHTML = '<p class=\\'\
-        scanning - error\\ '>No networks found.</p>';\
+            } else b.innerHTML = '<p class=\\'scanning - error\\'>No networks found.</p>';\
     },\
     error: function(a) {\
         console.log('Scanning error:' + a);\
-        document.getElementById('networks-div').innerHTML = '<p class=\\'\
-        scanning - error\\ '>Scanning error.</p>';\
+        document.getElementById('networks-div').innerHTML = '<p class=\\'scanning - error\\'>Scanning error.</p>';\
     },\
     regardless: function() {\
         scanButton.innerHTML = 'Re-Scan';\
@@ -90,27 +87,26 @@ var configure_callback = {\
     success: function(a) {\
         console.log('Credentials received.');\
         connectButton.innerHTML = 'Credentials received...';\
+        window.alert('Establishing connection... beep beep...');\
         postRequest(base_url + 'connect-ap', {\
             idx: 0\
         }, connect_callback);\
     },\
     error: function(a, b) {\
         console.log('Configure error: ' + a);\
-        window.alert('The configuration command failed, check that you are still well connected to the device\\'\
-            s WiFi hotspot and retry.\
-            ');connectButton.innerHTML='\
-            Retry ';enableButtons();}};var connect_callback={success:function(a){console.log('\
-            Attempting to connect to the cloud.\
-            ');connectButton.innerHTML='\
-            Attempting to connect...';window.alert('\
-            Your device should now start flashing green and attempt to connect to the cloud.This usually takes about 20 seconds, after which it will begin slowly blinking cyan.\\n\\ n\\ nIf this process fails because you entered the wrong password, the device will flash green indefinitely.In this\
-            case, hold the setup button\
-            for 6 seconds until the device starts blinking blue again.Then reconnect to the WiFi hotspot it generates and reload this page to\
-            try again.\
-            ');},error:function(a,b){console.log('\
-            Connect error:\
-                '+a);window.alert('\
-                The connect command failed, check that you are still well connected to the device\\ 's WiFi hotspot and retry.');\
+        window.alert('Got probs');\
+        connectButton.innerHTML='Retry';\
+        enableButtons();\
+    }\
+};\
+var connect_callback = {\
+    success: function(a) {\
+        console.log('Attempting to connect to the cloud.');\
+        connectButton.innerHTML = 'Attempting to connect...';\
+    },\
+    error: function(a, b) {\
+        console.log('Connect error:' + a);\
+        window.alert('The connect command failed, check that you are still well connected to the device\\'s WiFi hotspot and retry.');\
         connectButton.innerHTML = 'Retry';\
         enableButtons();\
     }\
@@ -203,5 +199,4 @@ if (scanButton.addEventListener) {\
     connectForm.attachEvent('onsubmit', configure);\
 }\
 getRequest(base_url + 'device-id', device_id_callback);\
-getRequest(base_url + 'public-key', public_key_callback);\
-";
+getRequest(base_url + 'public-key', public_key_callback);";
