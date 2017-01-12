@@ -4,19 +4,11 @@
 #include "Particle.h"
 #include "softap_http.h"
 
-
 #define MAJOR 0
 #define MINOR 3
-#define PATCH 1
+#define PATCH 2
 
-#include "index.h"
-#include "script_orig.h"
-#include "style.h"
-#include "jsbn_1.h"
-#include "jsbn_2.h"
-#include "prng4.h"
-#include "rng.h"
-#include "rsa.h"
+#include "webpage.h"
 
 //SYSTEM_THREAD(ENABLED);
 //SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -49,6 +41,17 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
         Header h("Location: /index.html\r\n");
         cb(cbArg, 0, 301, "text/plain", &h);
         return;
+    }
+
+    if (strcmp(url, "/cfg") ==0) {
+      char* data = body->fetch_as_string();
+      // We'll need to use SparkJSON for this.
+      //{"idx":0,"lightNm":"asdfasdf","fanNm":"dfasdfasd","email":"asdfasdfasdf"}
+      Serial.print("POST Data: ");
+      Serial.println(data);
+      // free the data! IMPORTANT!
+      free(data);
+      return;
     }
 
     int8_t idx = 0;
