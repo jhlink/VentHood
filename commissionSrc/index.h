@@ -9,6 +9,8 @@ const char index_html[] =
     <body>\
         <h1>FirstBuBuBuild!!!!</h1>\
         <h2>Connect me to your WiFi!</h2>\
+        <input type=text id='device-id' size='25' value='' disabled/>\
+        <button type='button' class='input-helper' id='copy-button'>Copy</button>\
         <div id='scan-div'>\
             <h3>Scan for visible WiFi networks</h3>\
             <button id='scan-button' type='button'>Scan</button></div>\
