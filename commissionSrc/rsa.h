@@ -25,5 +25,4 @@ function RSADoPublic(a) { return a.modPowInt(this.e, this.n); }\
 function RSAEncrypt(a) { var b = pkcs1pad2(a, (this.n.bitLength() + 7) >> 3); if (b == null) return null; var c = this.doPublic(b); if (c == null) return null; var d = c.toString(16); if ((d.length & 1) == 0) return d;\
     else return '0' + d; } RSAKey.prototype.doPublic = RSADoPublic;\
 RSAKey.prototype.setPublic = RSASetPublic;\
-RSAKey.prototype.encrypt = RSAEncrypt;\
-";
+RSAKey.prototype.encrypt = RSAEncrypt;";
