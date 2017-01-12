@@ -1,5 +1,4 @@
-const char jsbn_2_js[] =
-"function bnpRShiftTo(a, b) {\
+const char jsbn_2_js[] = "function bnpRShiftTo(a, b) {\
     b.s = this.s;\
     var c = Math.floor(a / this.DB);\
     if (c >= this.t) {\
@@ -275,5 +274,4 @@ BigInteger.prototype.bitLength = bnBitLength;\
 BigInteger.prototype.mod = bnMod;\
 BigInteger.prototype.modPowInt = bnModPowInt;\
 BigInteger.ZERO = nbv(0);\
-BigInteger.ONE = nbv(1);\
-";
+BigInteger.ONE = nbv(1);";
