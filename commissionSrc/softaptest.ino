@@ -4,9 +4,12 @@
 #include "Particle.h"
 #include "softap_http.h"
 
+
+#define MAJOR 0
+#define MINOR 3
+#define PATCH 1
+
 #include "index.h"
-//#include "html_orig.h"
-//#include "script.h"
 #include "script_orig.h"
 #include "style.h"
 #include "jsbn_1.h"
