@@ -10,7 +10,6 @@ var deviceID = document.getElementById('device-id');
 var connectForm = document.getElementById('connect-form');
 var venthoodForm = document.getElementById('venthood-form');
 var updateButton = document.getElementById('update-button');
-
 var public_key_callback = {
     success: function(a) {
         console.log('Public key: ' + a.b);
@@ -73,7 +72,11 @@ var configure = function(a) {
     if (!b) {
         window.alert('Please select a network!');
         return false;
+    } else if (!c) {
+        window.alert('Please provide a password!');
+        return false;
     }
+    console.log(c);
     var d = {
         idx: 0,
         ssid: b.ssid,
@@ -121,9 +124,9 @@ var device_configure = function(a) {
     var email = document.getElementById('email').value;
     var d = {
         idx: 0,
-        lightNm: light,
-        fanNm: fan,
-        email: email
+        lightDeviceName: light,
+        fanDeviceName: fan,
+        amznEmail: email
     };
     updateButton.innerHTML = 'Sending configuration...';
     disableUpdate();
