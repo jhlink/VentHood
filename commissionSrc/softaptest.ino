@@ -3,12 +3,12 @@
 #pragma SPARK_NO_PREPROCESSOR
 #include "Particle.h"
 #include "softap_http.h"
+#include "softiePage/webpage.h"
+#include "SparkJson/SparkJson.h"
 
 #define MAJOR 0
 #define MINOR 3
-#define PATCH 2
-
-#include "webpage.h"
+#define PATCH 3
 
 //SYSTEM_THREAD(ENABLED);
 //SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -77,17 +77,36 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
 
 STARTUP(softap_set_application_page_handler(myPage, nullptr));
 
+StaticJsonBuffer<512> jsonBuffer;
+JsonObject& data = jsonBuffer.createObject();
 
 void setup() {
     Serial.begin(9600);
   //  System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "Photon");
 }
 
-void loop() {
+void wifiReset() {
   static unsigned long timer = millis();
   if ((millis() - timer) > 5000) {
     WiFi.clearCredentials();
     WiFi.listen();
     timer = millis();
   }
+}
+
+void testPublish() {
+  char buffer[512];
+  static unsigned long timer = millis();
+  if ((millis() - timer) > 30000) {
+    data["amznEmail"] = "blamg";
+    data["fanDevName"] = "whatdu";
+    data["lightDevName"] = "seodo";
+    data.printTo(buffer, sizeof(buffer));
+    Serial.println(data);
+    timer = millis();
+  }
+}
+
+void loop() {
+
 }
