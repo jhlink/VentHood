@@ -4,6 +4,7 @@
 #include "Particle.h"
 #include "softap_http.h"
 #include "softiePage/webpage.h"
+#include "softiePage/gridPatterhWhite.h"
 
 #define MAJOR 0
 #define MINOR 3

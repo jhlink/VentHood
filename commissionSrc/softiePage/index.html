@@ -2,34 +2,53 @@
 <html>
     <head>
         <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <title>Setup your Venthood</title>
         <link rel='stylesheet' type='text/css' href='style.css'>
+        <img src='1BLogo.svg' id='logo' alt="firstbuild">
     </head>
     <body>
-        <h1>FirstBuBuBuild!!!!</h1>
-        <h2>Connect me to your WiFi!</h2>
-        <input type=text id='device-id' size='25' value='' disabled/>
-        <button type='button' class='input-helper' id='copy-button'>Copy</button>
-        <div id='scan-div'>
-            <h3>Scan for visible WiFi networks</h3>
-            <button id='scan-button' type='button'>Scan</button></div>
+        <div id='back' style='inline'>
+          <img src='back.svg' id='back_img' class='relative' alt="back">
+          <span id='back_txt'>Back</span>
+        </div>
+        <div id='progress-line' style='inline'>
+          <hr class="style">
+          <span id='stage1' class="circle"></span>
+          <span id='stage2' class="circle_open"></span>
+          <span id='stage3' class="circle_open"></span>
+          <span id='stage4' class="circle_open"></span>
+        </div>
+        <!-- TODO: Relace device-id-div with JS var.  -->
+        <div id='device-id-div' style='display: none'>
+          <input type=text id='device-id' size='25' value='' disabled/>
+          <button type='button' class='input-helper' id='copy-button'>Copy</button>
+        </div>
+        <div id='hood-device-div' style='display: block'>
+          <title>Voice Control Venthood Commmision Page</title>
+          <h1>Name your Venthood lights and fan.</h1>
+          <form id='venthood-form'>
+            <input type='text' id='light' size='25' placeholder='Light' />
+            <input type='text' id='fan' size='25' placeholder='Fan' />
+            <input type='text' id='email' size='25' placeholder='Amazon Email' />
+            <button type='submit' class='input-helper' id='update-button'>Connect</button>
+          </form>
+        </div>
+        <div id='scan-div' style='display: none'>
+          <button type='button' class='input-helper' id='scan-button'>Find Your Home Network</button>
+        </div>
         <div id='networks-div'></div>
         <div id='connect-div' style='display: none'>
-            <p>Don't see your network? Move me closer to your router, then re-scan.</p>
-            <form id='connect-form'>
-              <input type='password' id='password' size='25' placeholder='password' />
-              <button type='button' class='input-helper' id='show-button'>Show</button>
-              <button type='submit' id='connect-button'>Connect</button>
-            </form>
+          <p>Don't see your network? Move me closer to your router, then re-scan.</p>
+          <form id='connect-form'>
+            <input type='password' id='password' size='25' placeholder='Password' />
+            <button type='button' class='input-helper' id='show-button'>Show</button>
+            <button type='submit' class='input-helper' id='connect-button'>Connect</button>
+          </form>
         </div>
-        <div id='device-div' style='display: block'>
-            <p>Add your device names for the Venthood Light and Fan.</p>
-            <form id='venthood-form'>
-                <input type='text' id='light' size='25' placeholder='Light' />
-                <input type='text' id='fan' size='25' placeholder='Fan' />
-                <input type='text' id='email' size='25' placeholder='Amazon Email' />
-                <button type='submit' id='update-button'>Connect</button>
-            </form>
+        <div id='finish-div' style='display: none'>
+          <h1>Open your Alexa app</h1>
+          <p>Go to Skills.</p>
+          <p>Enable the FirstBuild Venthood Smarthome skill, and enter your Amazon info</p>
+          <p>That's it, tell Alexa to turn on the lights!</p>
         </div>
         <script src='rsa-utils/jsbn_1.js'></script>
         <script src='rsa-utils/jsbn_2.js'></script>
