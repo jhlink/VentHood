@@ -4,7 +4,6 @@
 #include "Particle.h"
 #include "softap_http.h"
 #include "softiePage/webpage.h"
-#include "softiePage/gridPatterhWhite.h"
 
 #define MAJOR 0
 #define MINOR 3
@@ -27,8 +26,14 @@ Page myPages[] = {
      { "/rsa-utils/rng.js", "application/javascript", rng_js },
      { "/rsa-utils/jsbn_2.js", "application/javascript", jsbn_2_js },
      { "/rsa-utils/jsbn_1.js", "application/javascript", jsbn_1_js },
-     { "/script.js", "application/javascript", script_js },
+     { "/devnam.js", "application/javascript", devnam_js },
+     { "/softap.js", "application/javascript", softap_js },
      { "/rsa-utils/prng4.js", "application/javascript", prng4_js },
+     { "/1BLogo.svg", "image/svg+xml", OneBLogo_svg },
+     { "/back.svg", "image/svg+xml", back_svg },
+     { "/FSEmeric-Bold.woff", "application/x-font-woff", NULL },
+     { "/FSEmeric-Regular.woff", "application/x-font-woff", NULL },
+     { "/FSEmeric-Medium.woff", "application/x-font-woff", NULL },
      { nullptr }
 };
 
@@ -49,7 +54,9 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
       //{"idx":0,"lightNm":"asdfasdf","fanNm":"dfasdfasd","email":"asdfasdfasdf"}
       Serial.print("POST Data: ");
       Serial.println(data);
-      // free the data! IMPORTANT!
+      cb(cbArg, 0, 200, "text/plain", nullptr);
+      result->write("{\"status\": \"OK\"}");
+    // free the data! IMPORTANT!
       free(data);
       return;
     }
@@ -68,10 +75,36 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
 
     if (idx==-1) {
         cb(cbArg, 0, 404, nullptr, nullptr);
-    }
-    else {
-        cb(cbArg, 0, 200, myPages[idx].mime_type, nullptr);
-        result->write(myPages[idx].data);
+    } else {
+        String contentTypeHeader = "Content-Type: ";
+        contentTypeHeader.concat(String(myPages[idx].mime_type));
+        char buff[contentTypeHeader.length() + 1];
+        contentTypeHeader.toCharArray(buff, contentTypeHeader.length() + 1);
+        Header h(buff);
+        cb(cbArg, 0, 200, myPages[idx].mime_type, &h);
+        switch (idx) {
+          case 11:
+            for(uint32_t i=0;i<FSEmeric_Bold_woff_len; i++) {
+              result->write((uint8_t)FSEmeric_Bold_woff[i]);
+            }
+            break;
+
+          case 12:
+            for(uint32_t i=0;i<FSEmeric_Regular_woff_len; i++) {
+              result->write((uint8_t)FSEmeric_Regular_woff[i]);
+            }
+            break;
+
+          case 13:
+            for(uint32_t i=0;i<FSEmeric_Medium_woff_len; i++) {
+              result->write((uint8_t)FSEmeric_Medium_woff[i]);
+            }
+            break;
+
+          default:
+            result->write(myPages[idx].data);
+            break;
+        }
     }
 }
 

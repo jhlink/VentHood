@@ -1,24 +1,18 @@
 var base_url = 'http://192.168.0.1/';
 var network_list;
 var public_key;
-// var rsa = new RSAKey();
+var rsa = new RSAKey();
 var scanButton = document.getElementById('scan-button');
 var connectButton = document.getElementById('connect-button');
-var copyButton = document.getElementById('copy-button');
 var showButton = document.getElementById('show-button');
-var deviceID = document.getElementById('device-id');
+var deviceID;
 var connectForm = document.getElementById('connect-form');
-var venthoodForm = document.getElementById('venthood-form');
-var updateButton = document.getElementById('update-button');
-var progressDiv = document.getElementById('progress-line');
-var backDiv = document.getElementById('back');
-var progressDiv = document.getElementById('progress-line');
 var connectDiv = document.getElementById('connect-div');
 var networksDiv = document.getElementById('networks-div');
-var deviceIDDiv = document.getElementById('device-id-div');
-var scanDiv = document.getElementById('scan-div');
-var hoodDeviceDiv = document.getElementById('hood-device-div');
-var finishDiv = document.getElementById('finish-div');
+function togObjDisp(childID, dispSet) {
+  var elm = document.getElementById(childID);
+  elm.style.display = dispSet;
+}
 var public_key_callback = {
   success: function(a) {
     console.log('Public key: ' + a.b);
@@ -27,38 +21,30 @@ var public_key_callback = {
   },
   error: function(a, b) {
     console.log(a);
-    window.alert('There was a problem fetching important information from your device. Please verify your connection, then reload this page.');
   }
 };
 var device_id_callback = {
   success: function(a) {
     var b = a.id;
-    deviceID.value = b;
+    deviceID = b;
   },
   error: function(a, b) {
     console.log(a);
     var c = 'COMMUNICATION_ERROR';
-    deviceID.value = c;
+    deviceID = c;
   }
 };
-function GetElementInsideContainer(containerID, childID) {
-    var elm = document.getElementById(childID);
-    var parent = elm ? elm.parentNode : {};
-    return (parent.id && parent.id === containerID) ? elm : {};
-}
 var scan = function() {
-  console.log('Scanning...!');
   disableButtons();
   scanButton.innerHTML = 'Scanning...';
   connectButton.innerHTML = 'Connect';
-  connectDiv.style.display = 'none';
-  networksDiv.style.display = 'none';
+  togObjDisp('connect-div','none');
+  togObjDisp('networks-div','none');
   getRequest(base_url + 'scan-ap', scan_callback);
 };
 var scan_callback = {
   success: function(a) {
     network_list = a.scans;
-    console.log('I found:');
     document.getElementById('stage3').className = 'circle';
     networksDiv.innerHTML = '';
     if (network_list.length > 0)
@@ -66,7 +52,7 @@ var scan_callback = {
         ssid = network_list[c].ssid;
         console.log(network_list[c]);
         add_wifi_option(networksDiv, ssid);
-        connectDiv.style.display = 'block';
+        togObjDisp('connect-div','none');
       } else networksDiv.innerHTML = '<p> No networks found.</p>';
   },
   error: function(a) {
@@ -76,8 +62,8 @@ var scan_callback = {
   regardless: function() {
     scanButton.innerHTML = 'Re-Scan';
     enableButtons();
-    networksDiv.style.display = 'block';
-    connectDiv.style.display = 'block';
+    togObjDisp('networks-div','block');
+    togObjDisp('connect-div','block');
   }
 };
 var configure = function(a) {
@@ -127,70 +113,18 @@ var connect_callback = {
   success: function(a) {
     console.log('Attempting to connect to the cloud.');
     connectButton.innerHTML = 'Attempting to connect...';
-    connectDiv.style.display = 'none';
+    togObjDisp('connect-div','none');
+    togObjDisp('networks-div','none');
+    togObjDisp('scan-div', 'none');
     document.getElementById('stage4').className = 'circle';
-    finishDiv.style.display = 'block';
+    togObjDisp('finish-div','block');
   },
   error: function(a, b) {
     console.log('Connect error:' + a);
     window.alert('The connect command failed, verification connection to Photon and retry.');
     connectButton.innerHTML = 'Retry';
     enableButtons();
-    connectDiv.style.display = 'none';
-    document.getElementById('stage4').className = 'circle';
-    finishDiv.style.display = 'block';
   }
-};
-var device_configure = function(a) {
-  a.preventDefault();
-  var light = document.getElementById('light').value;
-  var fan = document.getElementById('fan').value;
-  var email = document.getElementById('email').value;
-  if (!email) {
-      window.alert('Please provide Amazon email address!');
-      return false;
-  }
-  window.alert('You don\’t have to change the names but it can be easier if you get more \
-      connected lights or fans later on. Good examples of names to \
-      use are clear and easy for Alexa, like exhaust, lamp, turbo');
-  var d = {
-    idx: 0,
-    lightDeviceName: light,
-    fanDeviceName: fan,
-    amznEmail: email
-  };
-  updateButton.innerHTML = 'Sending configuration...';
-  disableUpdate();
-  console.log('Sending credentials: ' + JSON.stringify(d));
-  postRequest(base_url + 'cfg', d, device_configure_callback);
-};
-var device_configure_callback = {
-  success: function(a) {
-    console.log('Configuration received.');
-    updateButton.innerHTML = 'Configuration received...';
-
-    document.getElementById('stage2').className = 'circle';
-    window.alert('Commencing device naming... beep beep...');
-  },
-  error: function(a, b) {
-    console.log('Configuration received.');
-    updateButton.innerHTML = 'Configuration received...';
-    document.getElementById('logo').style.display = 'none';
-    hoodDeviceDiv.style.display = 'none';
-    scanDiv.style.display = 'block';
-    document.getElementById('stage2').className = 'circle';
-    window.alert('Commencing device naming... beep beep...');
-    //console.log('Configuration error: ' + a);
-    //window.alert('We got probs. Find Jim for help.');
-    //updateButton.innerHTML = 'Retry';
-    //enableUpdate();
-  }
-};
-var disableUpdate = function() {
-  updateButton.disabled = true;
-};
-var enableUpdate = function() {
-  updateButton.disabled = false;
 };
 var disableButtons = function() {
   connectButton.disabled = true;
@@ -221,9 +155,6 @@ var get_selected_network = function() {
     ssid = network_list[a].ssid;
     if (document.getElementById(ssid).checked) return network_list[a];
   }
-};
-var copy = function() {
-  window.prompt('Copy to clipboard: Ctrl + C, Enter', deviceID.value);
 };
 var toggleShow = function() {
   var a = document.getElementById('password');
@@ -269,17 +200,13 @@ var postRequest = function(a, b, c) {
   };
 };
 if (scanButton.addEventListener) {
-  copyButton.addEventListener('click', copy);
   showButton.addEventListener('click', toggleShow);
   scanButton.addEventListener('click', scan);
   connectForm.addEventListener('submit', configure);
-  venthoodForm.addEventListener('submit', device_configure);
 } else if (scanButton.attachEvent) {
-  copyButton.attachEvent('onclick', copy);
   showButton.attachEvent('onclick', toggleShow);
   scanButton.attachEvent('onclick', scan);
   connectForm.attachEvent('onsubmit', configure);
-  venthoodForm.attachEvent('onsubmit', device_configure);
 }
-// getRequest(base_url + 'device-id', device_id_callback);
-// getRequest(base_url + 'public-key', public_key_callback);
+getRequest(base_url + 'device-id', device_id_callback);
+getRequest(base_url + 'public-key', public_key_callback);
