@@ -7,7 +7,7 @@
 
 #define MAJOR 0
 #define MINOR 3
-#define PATCH 4
+#define PATCH 5
 
 //SYSTEM_THREAD(ENABLED);
 //SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -30,8 +30,6 @@ Page myPages[] = {
      { "/softap.js", "application/javascript", softap_js },
      { "/rsa-utils/prng4.js", "application/javascript", prng4_js },
      { "/1BLogo.svg", "image/svg+xml", OneBLogo_svg },
-     { "/back.svg", "image/svg+xml", back_svg },
-     { "/FSEmeric-Bold.woff", "application/x-font-woff", NULL },
      { "/FSEmeric-Regular.woff", "application/x-font-woff", NULL },
      { "/FSEmeric-Medium.woff", "application/x-font-woff", NULL },
      { nullptr }
@@ -61,6 +59,13 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
       return;
     }
 
+    if (strcmp(url, "/alive") ==0) {
+      Serial.println("I'm alive.");
+      cb(cbArg, 0, 200, "text/plain", nullptr);
+      result->write("{\"a\": \"1\"}");
+      return;
+    }
+
     int8_t idx = 0;
     for (;;idx++) {
         Page& p = myPages[idx];
@@ -83,19 +88,13 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
         Header h(buff);
         cb(cbArg, 0, 200, myPages[idx].mime_type, &h);
         switch (idx) {
-          case 11:
-            for(uint32_t i=0;i<FSEmeric_Bold_woff_len; i++) {
-              result->write((uint8_t)FSEmeric_Bold_woff[i]);
-            }
-            break;
-
-          case 12:
+          case 10:
             for(uint32_t i=0;i<FSEmeric_Regular_woff_len; i++) {
               result->write((uint8_t)FSEmeric_Regular_woff[i]);
             }
             break;
 
-          case 13:
+          case 11:
             for(uint32_t i=0;i<FSEmeric_Medium_woff_len; i++) {
               result->write((uint8_t)FSEmeric_Medium_woff[i]);
             }

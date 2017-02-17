@@ -1,8 +1,4 @@
 @font-face {
-  font-family: 'FSEmeric-Bold';
-  src: url('FSEmeric-Bold.WOFF') format('woff');
-}
-@font-face {
   font-family: 'FSEmeric-Medium';
   src: url('FSEmeric-Medium.woff') format('woff');
 }
@@ -19,7 +15,7 @@ html * {
 span.circle {
   position: relative;
   top: -1px;
-  left: -25px;
+  left: -21px;
   width: 15px;
   height: 15px;
   -webkit-border-radius: 7.5px;
@@ -32,11 +28,11 @@ span.circle {
 span.circle_open {
   position: relative;
   top: -1px;
-  left: -25px;
+  left: -19px;
   width: 12px;
   height: 12px;
-  -webkit-border-radius: 7.5px;
-  -moz-border-radius: 7.5px;
+  -webkit-border-radius: 9px;
+  -moz-border-radius: 9px;
   border-radius: 9px;
   border: 2px solid #EF4438;
   display: inline-block;
@@ -63,7 +59,7 @@ body {
   margin-bottom: 0;
   max-width: 400px;
   text-align: center;
-  border-radius: 4px
+  border-radius: 10px
 }
 div {
   margin-top: 25px;
@@ -72,28 +68,22 @@ div {
   margin-right: auto;
   text-align: center
 }
-title {
-  margin-top: 25px;
+h2 {
   margin-bottom: 25px;
-  font-family: 'FSEmeric-Bold'
-}
-h1 {
-  font-family: 'FSEmeric-Medium'
 }
 button {
   border-color: black;
   background-color: white;
   color: black;
-  border-radius: 5px;
-  height: 30px;
+  border-radius: 10px;
   font-size: 15px;
-  font-weight: bold
+  font-weight: bold;
+  width: 170px; 
 }
 button.input-helper {
   background-color: #F1582C;
   border-color: #F1582C;
   color: white;
-  margin-left: 3px
 }
 button:disabled {
   background-color: #bebebe;
@@ -102,13 +92,17 @@ button:disabled {
 }
 input[type='text'],
 input[type='password'] {
-  background-color: white;
-  color: #6e6e70;
-  border-color: white;
-  border-radius: 5px;
+  background-color: #E9E9E9;
+  color: black;
+  border-color: black;
+  border-radius: 10px;
   height: 25px;
   text-align: center;
-  font-size: 15px
+  font-size: 15px;
+  margin: 5px;
+}
+::-webkit-input-placeholder { 
+  color: #7E7E7E;
 }
 input:disabled {
   background-color: #bebebe;
@@ -116,71 +110,86 @@ input:disabled {
 }
 input[type='radio'] {
   position: relative;
-  bottom: -0.33em;
+  bottom: -3px;
   margin: 0;
   border: 0;
   height: 1.5em;
-  width: 15%
+  width: 15%;
 }
 label {
+  position: relative;
+  bottom: 2px;
   padding-top: 7px;
   padding-bottom: 7px;
   padding-left: 5%;
-  display: inline-block;
   width: 80%;
-  text-align: left
+  text-align: left;
+  background-color: transparent;
 }
 input[type='radio']:checked+label {
   font-weight: bold;
-  color: #1c75be
+  color: #1c75be;
+}
+ol {
+  text-align: left;
+}
+p {
+  text-align: left;
+  margin-left: 25px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.radio-div {
+  text-align: left;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  background-color: white;
+  color: #6e6e70;
+  border: 2px solid #6e6e70;
+  border-radius: 10px;
+  width: 75%;
+  padding: 5px;
 }
 .scanningerror {
   font-weight: bold;
   text-align: center
-}
-.radio-div {
-  box-sizing: border-box;
-  margin: 2px;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: white;
-  color: #6e6e70;
-  border: 1px solid #6e6e70;
-  border-radius: 3px;
-  width: 100%;
-  padding: 5px
 }
 .relative {
   position: relative;
   top: -4px;
   float: left;
 }
+#email-req {
+  color: red;
+  margin-top: 20px;
+  margin-bottom: -3px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  position: relative;
+  left: -72px;
+  font-size: 13px;
+  background-color: transparent;
+}
 #scan-button {
-  min-width: 100px
+  min-width: 200px;
+  width: 75%;
 }
 #connect-button,
 #update-button {
   display: block;
   min-width: 100px;
-  margin-top: 10px;
+  margin-top: 20px;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 20px
 }
 #password {
-  margin-top: 20px;
+  /*margin-top: 0px;*/
   margin-bottom: 10px
 }
 #logo {
   max-width: 100%;
   height: auto
-}
-#back_img {
-  width: 30px;
-  height: 30px;
-  background-color: transparent;
-}
-#back_txt {
-  float: left;
-  padding-left: 7px;
 }

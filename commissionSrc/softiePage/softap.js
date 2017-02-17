@@ -7,7 +7,6 @@ var connectButton = document.getElementById('connect-button');
 var showButton = document.getElementById('show-button');
 var deviceID;
 var connectForm = document.getElementById('connect-form');
-var connectDiv = document.getElementById('connect-div');
 var networksDiv = document.getElementById('networks-div');
 function togObjDisp(childID, dispSet) {
   var elm = document.getElementById(childID);
@@ -94,14 +93,12 @@ var configure_callback = {
   success: function(a) {
     console.log('Credentials received.');
     connectButton.innerHTML = 'Credentials received...';
-    window.alert('Establishing connection... beep beep...');
     postRequest(base_url + 'connect-ap', {
       idx: 0
     }, connect_callback);
   },
   error: function(a, b) {
     console.log('Configure error: ' + a);
-    window.alert('Got probs');
     connectButton.innerHTML = 'Retry';
     enableButtons();
     postRequest(base_url + 'connect-ap', {
@@ -121,7 +118,6 @@ var connect_callback = {
   },
   error: function(a, b) {
     console.log('Connect error:' + a);
-    window.alert('The connect command failed, verification connection to Photon and retry.');
     connectButton.innerHTML = 'Retry';
     enableButtons();
   }
@@ -182,6 +178,23 @@ var getRequest = function(a, b) {
       }
   };
 };
+function connectionPoll() {
+  var z = new XMLHttpRequest();
+  z.ontimeout = function() {
+    if (z.status !== 200) {
+      window.alert('Your connection has been interrupted.\\n\\nPlease restart the setup process.');
+      window.location.href = 'http://www.example.com';
+    }
+  };
+  z.open('GET', base_url + 'alive', true);
+  z.timeout = 4000;
+  z.onload = function() {
+    if(z.readyState == 4 && z.status === 200) {
+        setTimeout(connectionPoll, 5000);
+    }
+  };
+  z.send();
+}
 var postRequest = function(a, b, c) {
   var d = JSON.stringify(b);
   var e = new XMLHttpRequest();
@@ -210,3 +223,4 @@ if (scanButton.addEventListener) {
 }
 getRequest(base_url + 'device-id', device_id_callback);
 getRequest(base_url + 'public-key', public_key_callback);
+setTimeout(connectionPoll, 5000);
