@@ -7,10 +7,10 @@
 
 #define MAJOR 0
 #define MINOR 3
-#define PATCH 5
+#define PATCH 6
 
-//SYSTEM_THREAD(ENABLED);
-//SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_THREAD(ENABLED);
+SYSTEM_MODE(SEMI_AUTOMATIC);
 
 struct Page
 {
@@ -109,11 +109,39 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
 
 STARTUP(softap_set_application_page_handler(myPage, nullptr));
 
-//StaticJsonBuffer<512> jsonBuffer;
-//JsonObject& data = jsonBuffer.createObject();
+bool wifiIsListening() {
+ return !WiFi.listening();
+}
+
+bool wifiCommissioning() {
+  if (WiFi.hasCredentials()) {
+    Serial.println("Connecting");
+    WiFi.connect(WIFI_CONNECT_SKIP_LISTEN);
+  } else {  
+    Serial.println("Listening");
+    WiFi.listen();
+  }
+  waitUntil(wifiIsListening);
+  Serial.println("Connecting after listening");
+  waitFor(WiFi.ready, 10000);
+  if (!(WiFi.ready())) {
+    Serial.println("Clearing credentials");
+    Serial.println("Failure");
+    WiFi.clearCredentials();
+    return false;
+  }
+  Serial.println("Success");
+  Serial.println("\n");
+  return true;
+}
 
 void setup() {
     Serial.begin(9600);
+    while(!Serial);
+
+    while (!wifiCommissioning());
+
+    Particle.connect();
   //  System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "Photon");
 }
 
@@ -125,6 +153,7 @@ void wifiReset() {
     timer = millis();
   }
 }
+
 
 //void testPublish() {
 //  char buffer[512];
@@ -140,5 +169,7 @@ void wifiReset() {
 //}
 
 void loop() {
-  wifiReset();
+  Serial.println("Success in loop");
+  delay(2000);
+  wifiReset(); 
 }

@@ -181,7 +181,9 @@ var getRequest = function(a, b) {
 function connectionPoll() {
   var z = new XMLHttpRequest();
   z.ontimeout = function() {
-    if (z.status !== 200) {
+    if (document.getElementById('stage4').className === 'circle') {
+      return;    
+    } else if (z.status !== 200) {
       window.alert('Your connection has been interrupted.\\n\\nPlease restart the setup process.');
       window.location.href = 'http://www.example.com';
     }
