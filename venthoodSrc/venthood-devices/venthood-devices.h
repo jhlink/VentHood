@@ -2,8 +2,8 @@
 #define VENTHOOD_H
 
 #include <application.h>
-#include "AnalogInputDebounced.h"
-#include "SparkFun_APDS9960.h"
+#include "../AnalogInputDebounced/AnalogInputDebounced.h"
+#include "../APDS9960/SparkFun_APDS9960.h"
 #include "assert.h"
 
 #ifndef CH_A
