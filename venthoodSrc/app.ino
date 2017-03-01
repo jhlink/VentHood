@@ -19,8 +19,6 @@
  * SOFTWARE.
  *
  */
-
- // This #include statement was automatically added by the Particle IDE.
 #include "venthood-devices.h"
 
 #pragma SPARK_NO_PREPROCESSOR
@@ -28,7 +26,6 @@
 #include "softap_http.h"
 #include "softiePage/webpage.h"
 
-//  Version
 #define VENTHOOD_VERSION_MAJOR 0
 #define VENTHOOD_VERSION_MINOR 3
 #define VENTHOOD_VERSION_PATCH 6
@@ -84,11 +81,6 @@ Page myPages[] = {
 // #define GESTURE_SENSOR_1 A0
 
 #define MAX_ARGS 64
-
-//  Pixie Controller configuration
-// #define NUM_OF_PIXIES    2
-// #define DEFAULT_BRIGHTNESS  200
-// #define LOW_BRIGHTNESS  75
 
 Fan venthoodFan = Fan(false);
 Light venthoodLights = Light(false);
@@ -218,8 +210,7 @@ void measure() {
 
 Timer functionTest(5000, beammeup);
 
-void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved)
-{
+void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved){
     Serial.printlnf("handling page %s", url);
 
     if (strcmp(url,"/index")==0) {
