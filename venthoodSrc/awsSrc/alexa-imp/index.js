@@ -108,27 +108,28 @@ exports.handler = function(event, context) {
 function handleDiscovery(event, context) {
   //  Creating response header.
   var headers = createHeader(NAMESPACE_DISCOVERY, RESPONSE_DISCOVER);
-  var payload = {};
+  var processedPayload = {};
+  log('Discovery', 'Handling discovery..');
   
   if (event.header.name == REQUEST_DISCOVER) {
     requestForUserEmail(event.payload.accessToken)
       .then(requestForUserDeviceProfiles, log)
       .then(assembleApplianceIdObjects, log)
       .then(function packageAndSendPayload(applianceObjects) {
-        payload = {
+        processedPayload = {
           discoveredAppliances: applianceObjects
         };
-  
+        
         //  Craft the final response back to Alexa Connected Home Skill. 
         var result = {
           header: headers,
-          payload: payloads
+          payload: processedPayload
         };
   
         log('Discovery', result);
   
         context.succeed(result);
-    });
+    }, log);
   }
 }
 
@@ -244,8 +245,7 @@ function submitHttpRequest(data, path, confirmationMessage) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    formData: data 
+    }
   };
 
 
@@ -298,11 +298,7 @@ function createHeader(namespace, name) {
 }
 
 function generateControlError(name, code, description) {
-  var headers = {
-    namespace: NAMESPACE_CONTROL,
-    name: name,
-    payloadVersion: '2'
-  };
+  var headers = createHeader(NAMESPACE_CONTROL, name);
 
   var payload = {
     exception: {
@@ -333,10 +329,16 @@ function requestForUserEmail(accessToken) {
   });
 }
 
+function testRequestForUserEmail(accessToken) {
+  return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
+    resolve("blah@amazon.com");
+  });
+}
+
 function requestForUserDeviceProfiles(email) {
   var params = {
       'TableName': process.env.ALEXA_CREDS_TABLE,
-      'Key': {'user_email': {'S': email}}
+      'Key': {'amzn_email': {'S': email}}
   };
   return retrieveItemFromDynamoDB(params);
 }
@@ -350,7 +352,7 @@ function requestForServiceAccessToken(event) {
           .then(function extractAccessToken(oauthObject) {
             event.payload.accessToken = oauthObject.access_token;
             return event;
-          });
+          }, log);
 }
 
 function retrieveItemFromDynamoDB(getItemParam) {
@@ -363,7 +365,6 @@ function retrieveItemFromDynamoDB(getItemParam) {
         return reject("ERROR", "Cannot obtain device data from database.");
       } else {
         // Convert DynamoDB Wrapped JSON object into regular JSON object.
-        console.log(data.Item);
         dynamoDBData = attr.unwrap(data.Item);
         resolve(dynamoDBData);
       }
@@ -377,7 +378,7 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
-    friendlyName: friendlyDeviceName.isNaN() ?  'Venthood Lights' : friendlyDeviceName,
+    friendlyName: friendlyDeviceName === "" ?  'Venthood Lights' : friendlyDeviceName,
     friendlyDescription: 'The lights in your FirstBuild made Voice Venthood.',
     isReachable: true,
     actions:[
@@ -398,7 +399,7 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
-    friendlyName: friendlyDeviceName.isNaN() ?  'Venthood Exhaust' : friendlyDeviceName,
+    friendlyName: friendlyDeviceName === "" ?  'Venthood Exhaust' : friendlyDeviceName,
     friendlyDescription: 'The exhaust in your FirstBuild made Voice Venthood.',
     isReachable: true,
     actions:[
@@ -413,12 +414,13 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
 }
 
 function assembleApplianceIdObjects(deviceIdPayload) {
-  var appliances = {};
-  var deviceID = deviceIdPayload.device-id;
-  var fanName = deviceIdPayload.fan-device-name;
-  var lightName = deviceIdPayload.light-device-name;
-  
+  var appliances = [];
+  var deviceID = deviceIdPayload.device_id;
+  var fanName = deviceIdPayload.fan_device_name;
+  var lightName = deviceIdPayload.light_device_name;
+ 
   appliances.push(createVenthoodFanObject(deviceID, fanName));
-  appliances.push(createVenthoodLightObject(deviceID, light));
+  appliances.push(createVenthoodLightObject(deviceID, lightName));
+  
   return appliances;
 }
