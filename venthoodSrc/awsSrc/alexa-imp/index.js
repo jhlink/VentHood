@@ -26,11 +26,8 @@ var attr = require('dynamodb-data-types').AttributeValue;
 var aws = require('aws-sdk');
 var db = new aws.DynamoDB();
 
-var particleServer = "api.particle.io";
-var particlePath = "/v1/devices/";
-
-var venthoodManuLight = "70733a01-271c-491d-9f28-0182e887dd07";
-var venthoodManuFan = "903459fd-c58d-4256-9150-b94c98492447";
+const serviceHostName = process.env.SERVICE_HOST_NAME;
+const servicePostPath = process.env.SERVICE_POST_PATH;
 
 // namespaces
 
@@ -115,7 +112,7 @@ function handleDiscovery(event, context) {
   
   if (event.header.name == REQUEST_DISCOVER) {
     requestForUserEmail(event.payload.accessToken)
-      .then(requestForUserEmail, log)
+      .then(requestForUserDeviceProfiles, log)
       .then(assembleApplianceIdObjects, log)
       .then(function packageAndSendPayload(applianceObjects) {
         payload = {
@@ -140,149 +137,136 @@ function handleDiscovery(event, context) {
  * This is called when Alexa requests an action (IE turn off appliance).
  */
 function handleControl(event, context) {
-  if (event.header.namespace === 'Alexa.ConnectedHome.Control') {
-    /**
-     * Retrieve the appliance id and accessToken from the incoming message.
-     */
-    var requestedName = event.header.name;
-    var accessToken = event.payload.accessToken;
-    var applianceId = event.payload.appliance.applianceId;
-    var deviceType = event.payload.appliance.additionalApplianceDetails.type;
-    var message_id = event.header.messageId;
-    var param = "";
-    var state = 0;
-    var index = "0";
-    var confirmation;
-    var funcName;
-    var incDecIdentifier = "";
-
-    log("Access Token: ", accessToken);
-    log("DeviceID: ", deviceid);
-
-    switch (requestedName) {
-      case REQUEST_TURN_ON:
-        state = 1;
-        confirmation = "TurnOnConfirmation";
-        funcName = "onoff";
-        break;
-
-      case REQUEST_TURN_OFF:
-        state = 0;            
-        confirmation = "TurnOffConfirmation";
-        funcName = "onoff";
-        break;
-
-      case SET_PERCENTAGE_REQUEST:
-        state = event.payload.percentageState.value;
-        confirmation = "SetPercentageConfirmation";
-        funcName = "setvalue";
-        break;
-
-      case INCREMENT_PERCENTAGE_REQUEST:
-        var increment = event.payload.deltaPercentage.value;
-
-        state += increment;
-
-        if(state > 100){
-          state = 100;
-        }
-
-        incDecIdentifier = 1;
-
-        confirmation = "IncrementPercentageConfirmation";
-        funcName = "setvalue";
-        break;
-
-      case DECREMENT_PERCENTAGE_REQUEST:
-        var decrement = event.payload.deltaPercentage.value;
-
-        state = decrement;
-
-        if(state < 0){
-          state = 0;
-        }
-
-        incDecIdentifier = 2;
-
-        confirmation = "DecrementPercentageConfirmation";
-        funcName = "setvalue";
-        break;
-    }
-
-    if (deviceType === 'light') {
-      index = "0";
-    } else if(deviceType === 'fan') {
-      index = "1";
-    }
-
-    if (incDecIdentifier === "") {
-      param = index + "=" + state;
-    } else {
-      param = index + "=" + state + "=" + incDecIdentifier;
-    }
-
-    // Submitting HTTP REQEUST
-    var options = {
-      hostname: particleServer,
-      port: 443,
-      path: particlePath + deviceid + "/" + funcName,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    };
-
-    var data = "access_token=" + accessToken + "&" + "args=" + param;
-
-    var serverError = function (e) {
-      log('Error', e.message);
-      context.fail(generateControlError(requestedName, 'DEPENDENT_SERVICE_UNAVAILABLE', 'Unable to connect to server'));
-    };
-
-    var callback = function(response) {
-      var str = '';
-
-      response.on('data', function(chunk) {
-        str += chunk.toString('utf-8');
-      });
-
-      response.on('end', function() {
-        log('Return Value');
-        log(str);
-
-        var headers = {
-          namespace: 'Alexa.ConnectedHome.Control',
-          name: confirmation,
-          payloadVersion: '2',
-          messageId: message_id
-        };
-        var payloads = {
-
-        };
-        var result = {
-          header: headers,
-          payload: payloads
-        };
-
-        context.succeed(result);
-      });
-
-      response.on('error', serverError);
-    };
-
-    var req = https.request(options, callback);
-
-    req.on('error', serverError);
-
-    req.write(data);
-    req.end();
-  }
+  requestForServiceAccessToken(event)
+    .then(constructDeviceCommand, log)
+    .then(submitHttpRequest, log)
+    .then(log, log);
 }
 
-function handleControlTurnOn(event) {
-  var header = createHeader(NAMESPACE_CONTROL, RESPONSE_TURN_ON);
-  var payload = {};
-  return createDirective(header, payload);
+function constructDeviceCommand(event) {
+  var requestedName = event.header.name;
+  var accessToken = event.payload.accessToken;
+  var deviceId = event.payload.appliance.applianceId;
+  var deviceType = event.payload.appliance.additionalApplianceDetails.type;
+  var message_id = event.header.messageId;
+  
+  var param = "";
+  var state = 0;
+  var confirmation;
+  var funcName;
+  
+  log("Access Token: ", accessToken);
+  log("DeviceID: ", deviceid);
+  
+  switch (requestedName) {
+    case REQUEST_TURN_ON:
+      state = 1;
+      confirmation = RESPONSE_TURN_ON;
+      funcName = "onoff";
+      break;
+  
+    case REQUEST_TURN_OFF:
+      state = 0;            
+      confirmation = RESPONSE_TURN_OFF;
+      funcName = "onoff";
+      break;
+  
+    case SET_PERCENTAGE_REQUEST:
+      state = event.payload.percentageState.value;
+      confirmation = RESPONSE_SET_PERCENTAGE;
+      funcName = "setvalue";
+      break;
+  
+    case INCREMENT_PERCENTAGE_REQUEST:
+      var increment = event.payload.deltaPercentage.value;
+  
+      state += increment;
+  
+      if (state > 100){
+        state = 100;
+      }
+  
+      incDecIdentifier = 1;
+  
+      confirmation = RESPONSE_INCREMENT_PERCENTAGE;
+      funcName = "setvalue";
+      break;
+  
+    case DECREMENT_PERCENTAGE_REQUEST:
+      var decrement = event.payload.deltaPercentage.value;
+  
+      state = decrement;
+  
+      if(state < 0){
+        state = 0;
+      }
+  
+      incDecIdentifier = 2;
+  
+      confirmation = RESPONSE_DECREMENT_PERCENTAGE;
+      funcName = "setvalue";
+      break;
+  }
+  
+  if (deviceType === 'light') {
+    deviceType = "0";
+  } else if(deviceType === 'fan') {
+    deviceType = "1";
+  }
+  
+  switch (confirmation) {
+    case RESPONSE_INCREMENT_PERCENTAGE:
+      param = deviceType + "=" + state + '=' + 1;
+      break;
+
+    case RESPONSE_DECREMENT_PERCENTAGE:
+      param = deviceType + "=" + state + '=' + 2;
+      break;
+
+    default:
+      param = deviceType + "=" + state;
+      break;
+  }
+
+
+  var serviceDeviceAccessAndCommands = "access_token=" + accessToken + "&" + "args=" + param;
+  var devicePostPath = servicePostPath + deviceid + "/" + funcName;
+   
+  resolve(serviceDeviceAccessAndCommands, devicePostPath, confirmation);
+}
+
+function submitHttpRequest(data, path, confirmationMessage) {
+  // Submitting HTTP REQEUST
+  var options = {
+    hostname: serviceHostName,
+    port: 443,
+    path: path,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    formData: data 
+  };
+
+
+  return new Promise(function promiseToSubmitHttpRequest(resolve, reject) {
+     https.request(options, function(response) {
+
+       if (response.statusCode == 200) {
+         var headers = createHeader(NAMESPACE_CONTROL, confirmationMessage);
+         var payloads = {};
+         var result = {
+           header: headers,
+           payload: payloads
+         };
+
+         resolve("SUCCESS", result);
+       } else {
+         var rejectMessage = generateControlError(requestedName, 'DEPENDENT_SERVICE_UNAVAILABLE', 'Unable to connect to server');
+         reject("ERROR", rejectMessage);
+       }
+      });
+  });
 }
 
 /**
@@ -350,14 +334,30 @@ function requestForUserEmail(accessToken) {
 }
 
 function requestForUserDeviceProfiles(email) {
+  var params = {
+      'TableName': process.env.ALEXA_CREDS_TABLE,
+      'Key': {'user_email': {'S': email}}
+  };
+  return retrieveItemFromDynamoDB(params);
+}
+
+function requestForServiceAccessToken(event) {
+  var params = {
+      'TableName': process.env.OAUTH_ACCESS_TOKEN_TABLE,
+      'Key': {'service_id': {'S': process.env.SERVICE_ID }}
+  };
+  return retrieveItemFromDynamoDB(params)
+          .then(function extractAccessToken(oauthObject) {
+            event.payload.accessToken = oauthObject.access_token;
+            return event;
+          });
+}
+
+function retrieveItemFromDynamoDB(getItemParam) {
   return new Promise(function promiseToRequestForUserDeviceProfiles(resolve, request) {
 	  var dynamoDBData;
-    var params = {
-        'TableName': process.env.ALEXA_CREDS_TABLE,
-        'Key': {'user_email': {'S': email}}
-    };
 
-    db.getItem(params, function(err, data) {
+    db.getItem(getItemParam, function(err, data) {
       if (err) {
         console.log('Failed to get data from database', err);
         return reject("ERROR", "Cannot obtain device data from database.");
