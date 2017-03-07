@@ -1,9 +1,9 @@
 {
   "event": "alexa-config",
-  "url": "http://requestb.in/10q09xm1",
+  "url": "[SEE DOCUMENTATION FOR DETAILS]",
   "requestType": "POST",
   "headers": {
-    "x-api-key": "asef930fjasdkfj"
+    "x-api-key": "[SEE DOCUMENTATION FOR DETAILS]"
   },
   "json": {
     "amznEmail": "{{DATA.AMZN_EMAIL}}",
