@@ -334,9 +334,9 @@ void Fan::process(void) {
     } else if (checkingForFanHiButton.isUniquelyActive()) {
         onOffState = true;
         fanSpeed = Hi;
-    } else if (checkingForFanBoost.isLongPressed()) {
-        onOffState = true;
-        fanSpeed = Boost;
+//    } else if (checkingForFanBoost.isLongPressed()) {
+//        onOffState = true;
+//        fanSpeed = Boost;
     }
 }
 

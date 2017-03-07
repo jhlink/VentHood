@@ -30,6 +30,9 @@ bool AnalogInputDebounced::checkInRange(const T& valueToCheck, const T& lowerBou
 
 AnalogInputDebounced::AnalogInputDebounced(void) : m_prevState(false), m_inputState(false), m_count(0), m_pin(-1), m_voltagePoint(-1), longPressTimeout(0) {}
 
+AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) : m_prevState(false), m_inputState(false), m_count(0), m_pin(pin), m_voltagePoint(targetVoltage), longPressTimeout(2000)
+{}
+
 AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage, long longPressLength) : m_prevState(false), m_inputState(false), m_count(0), m_pin(pin), m_voltagePoint(targetVoltage), longPressTimeout(longPressLength)
 {}
 
@@ -64,7 +67,7 @@ void AnalogInputDebounced::updateInput(void) {
 bool AnalogInputDebounced::isUniquelyActive(void) {
   if ((m_inputState == true) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
-    longPressTime = millis();
+    longPressTimeout = millis();
     return true;
   } else if ((m_inputState == false) && (m_prevState != m_inputState)) {
     m_prevState = m_inputState;
@@ -73,22 +76,22 @@ bool AnalogInputDebounced::isUniquelyActive(void) {
 }
 
 bool AnalogInputDebounced::isLongPressed(void) {
+  unsigned long pastTime = 0;
   if ((m_inputState == true) && (m_prevState != m_inputState) &&
       ((millis() - pastTime) > LONG_PRESS_TIMEOUT)) {
-      
       m_prevState = m_inputState;
     return true;
   } else {
-    longPressTime = millis();
+      longPressTimeout = millis();
   }
   return false;
 
 
-  if ((millis() - prevTime) < UPDATETIME) {
-    return;
-  } else {
-    prevTime = millis();
-  }
+  //if ((millis() - prevTime) < UPDATETIME) {
+  //  return;
+  //} else {
+  //  prevTime = millis();
+  //}
 }
 
 bool AnalogInputDebounced::isActive(void) {

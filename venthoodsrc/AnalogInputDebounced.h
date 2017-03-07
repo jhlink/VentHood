@@ -29,11 +29,13 @@
 #define DEBOUNCE_COUNT 2
 #define UPDATETIME 10
 #define VOLTAGE_TOLERANCE_RANGE 100
+#define LONG_PRESS_TIMEOUT 100
 
 class AnalogInputDebounced {
   public:
     AnalogInputDebounced(void);
     AnalogInputDebounced(int pin, int targetVoltage);
+    AnalogInputDebounced(int pin, int targetVoltage, long longPressLength);
     void updateInput(void);
     bool isActive(void);
     bool isUniquelyActive(void);
