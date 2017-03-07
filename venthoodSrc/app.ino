@@ -499,6 +499,10 @@ int setPercentage(String args) {
 
 void setup() {
     Serial.begin(9600);
+    
+    //System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "FirstBuild_Venthood");
+    //System.set(SYSTEM_CONFIG_SOFTAP_SUFFIX, "YOLO");
+
     while (!wifiCommissioning());
     Particle.connect();
 
