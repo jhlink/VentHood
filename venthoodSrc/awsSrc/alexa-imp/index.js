@@ -112,7 +112,7 @@ function handleDiscovery(event, context) {
   log('Discovery', 'Handling discovery..');
   
   if (event.header.name == REQUEST_DISCOVER) {
-    requestForUserEmail(event.payload.accessToken)
+    requestForUserEmail(event)
       .then(requestForUserDeviceProfiles, log)
       .then(assembleApplianceIdObjects, log)
       .then(function packageAndSendPayload(applianceObjects) {
@@ -138,7 +138,7 @@ function handleDiscovery(event, context) {
  * This is called when Alexa requests an action (IE turn off appliance).
  */
 function handleControl(event, context) {
-  requestForServiceAccessToken(event)
+  requestForDeviceServiceAccessToken(event)
     .then(constructDeviceCommand, log)
     .then(submitHttpRequest, log)
     .then(log, log);
@@ -156,29 +156,36 @@ function constructDeviceCommand(event) {
   var confirmation;
   var funcName;
   
+  if (deviceType === 'light') {
+    deviceType = "0";
+  } else if(deviceType === 'fan') {
+    deviceType = "1";
+  }
+  
   log("Access Token: ", accessToken);
-  log("DeviceID: ", deviceid);
+  log("DeviceID: ", deviceId);
   
   switch (requestedName) {
     case REQUEST_TURN_ON:
-      state = 1;
       confirmation = RESPONSE_TURN_ON;
-      funcName = "onoff";
+      funcName = "on";
+      param = deviceType;
       break;
   
     case REQUEST_TURN_OFF:
-      state = 0;            
       confirmation = RESPONSE_TURN_OFF;
-      funcName = "onoff";
+      funcName = "off";
+      param = deviceType;
       break;
   
-    case SET_PERCENTAGE_REQUEST:
+    case REQUEST_SET_PERCENTAGE:
       state = event.payload.percentageState.value;
       confirmation = RESPONSE_SET_PERCENTAGE;
       funcName = "setvalue";
+      param = deviceType + "=" + state;
       break;
   
-    case INCREMENT_PERCENTAGE_REQUEST:
+    case REQUEST_INCREMENT_PERCENTAGE:
       var increment = event.payload.deltaPercentage.value;
   
       state += increment;
@@ -191,14 +198,15 @@ function constructDeviceCommand(event) {
   
       confirmation = RESPONSE_INCREMENT_PERCENTAGE;
       funcName = "setvalue";
+      param = deviceType + "=" + state + '=' + 1;
       break;
   
-    case DECREMENT_PERCENTAGE_REQUEST:
+    case REQUEST_DECREMENT_PERCENTAGE:
       var decrement = event.payload.deltaPercentage.value;
   
       state = decrement;
   
-      if(state < 0){
+      if(state < 0) {
         state = 0;
       }
   
@@ -206,66 +214,70 @@ function constructDeviceCommand(event) {
   
       confirmation = RESPONSE_DECREMENT_PERCENTAGE;
       funcName = "setvalue";
-      break;
-  }
-  
-  if (deviceType === 'light') {
-    deviceType = "0";
-  } else if(deviceType === 'fan') {
-    deviceType = "1";
-  }
-  
-  switch (confirmation) {
-    case RESPONSE_INCREMENT_PERCENTAGE:
-      param = deviceType + "=" + state + '=' + 1;
-      break;
-
-    case RESPONSE_DECREMENT_PERCENTAGE:
       param = deviceType + "=" + state + '=' + 2;
       break;
-
+      
+     
+    // 1 =  increment
+    // 2 =  decrement
+      
     default:
-      param = deviceType + "=" + state;
+      console.log("nothing worked... :(");
       break;
   }
+  
+  
 
-
-  var serviceDeviceAccessAndCommands = "access_token=" + accessToken + "&" + "args=" + param;
-  var devicePostPath = servicePostPath + deviceid + "/" + funcName;
-   
-  resolve(serviceDeviceAccessAndCommands, devicePostPath, confirmation);
+  var serviceDeviceAccessAndCommands = "args=" + param;
+  var devicePostPath = servicePostPath + deviceId + "/" + funcName;
+  
+  var postStruction = {
+      auth: accessToken,
+      path: devicePostPath,
+      data: serviceDeviceAccessAndCommands,
+      msg: confirmation
+  };
+  return postStruction;
 }
 
-function submitHttpRequest(data, path, confirmationMessage) {
-  // Submitting HTTP REQEUST
+function submitHttpRequest(postInfo) {
+    // Submitting HTTPS REQUEST
   var options = {
     hostname: serviceHostName,
     port: 443,
-    path: path,
+    path: postInfo.path,
     method: 'POST',
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': 'Bearer ' + postInfo.auth
     }
   };
-
-
-  return new Promise(function promiseToSubmitHttpRequest(resolve, reject) {
-     https.request(options, function(response) {
-
-       if (response.statusCode == 200) {
-         var headers = createHeader(NAMESPACE_CONTROL, confirmationMessage);
-         var payloads = {};
-         var result = {
-           header: headers,
-           payload: payloads
-         };
-
-         resolve("SUCCESS", result);
-       } else {
-         var rejectMessage = generateControlError(requestedName, 'DEPENDENT_SERVICE_UNAVAILABLE', 'Unable to connect to server');
-         reject("ERROR", rejectMessage);
-       }
+  
+  return new Promise(function promiseToSubmitHttpsRequest(resolve, reject) {
+     var test = https.request(options, function httpsCallback(response) {
+        
+        response.on('error', function ohno(input) {
+            console.log(input.toString('utf-8'));
+          reject("ERROR", input.toString('utf-8'));
+        });
+        response.on('data', function ohyes(input) {
+            var headers = createHeader(NAMESPACE_CONTROL, postInfo.msg);
+            var payloads = {};
+            var result = {
+              header: headers,
+              payload: payloads
+            };
+            var test = JSON.parse(input);
+            console.log(input.toString('utf-8'));
+            console.log(test.return_value);
+            resolve("SUCCESS", result);
+        });
+     });
+      test.on('error', (e) => {
+          console.log('Request Error: ' + e);
       });
+      test.write(postInfo.data);
+      test.end();
   });
 }
 
@@ -315,7 +327,8 @@ function generateControlError(name, code, description) {
   return result;
 }
 
-function requestForUserEmail(accessToken) {
+function requestForUserEmail(event) {
+  var accessToken = event.payload.accessToken;
   return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
     var amazonProfileURL = 'https://api.amazon.com/user/profile?access_token=' + accessToken;
     https.request(amazonProfileURL, function processProfileResponse(error, response, body) {
@@ -343,7 +356,7 @@ function requestForUserDeviceProfiles(email) {
   return retrieveItemFromDynamoDB(params);
 }
 
-function requestForServiceAccessToken(event) {
+function requestForDeviceServiceAccessToken(event) {
   var params = {
       'TableName': process.env.OAUTH_ACCESS_TOKEN_TABLE,
       'Key': {'service_id': {'S': process.env.SERVICE_ID }}

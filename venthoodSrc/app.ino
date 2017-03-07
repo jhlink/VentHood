@@ -19,7 +19,7 @@
  * SOFTWARE.
  *
  */
-#include "venthood-devices.h"
+#include "venthood-devices/venthood-devices.h"
 
 #pragma SPARK_NO_PREPROCESSOR
 #include "Particle.h"
@@ -318,52 +318,77 @@ void wifiReset() {
   }
 }
 
-void testPublish() {
-  char buffer[512];
-  static unsigned long timer = millis();
-  if ((millis() - timer) > 30000) {
-    data["amznEmail"] = "blamg";
-    data["fanDevName"] = "whatdu";
-    data["lightDevName"] = "seodo";
-    data.printTo(buffer, sizeof(buffer));
-    Serial.println(buffer);
-    timer = millis();
+//void testPublish() {
+//  char buffer[512];
+//  static unsigned long timer = millis();
+//  if ((millis() - timer) > 30000) {
+//    data["amznEmail"] = "blamg";
+//    data["fanDevName"] = "whatdu";
+//    data["lightDevName"] = "seodo";
+//    data.printTo(buffer, sizeof(buffer));
+//    Serial.println(buffer);
+//    timer = millis();
+//  }
+//}
+//
+
+int turnOnDevice(String args) {
+  int index = args.toInt();
+  char applianceArgs[MAX_ARGS];
+  args.toCharArray(applianceArgs, MAX_ARGS);
+  String deviceType = index ? "Fan" : "Light";
+  sscanf(applianceArgs, "%d", &index);
+  
+  Serial.print("\nOn/Off\n");
+  Serial.print("Argument Value: ");
+  Serial.print(args);
+  Serial.print("\nDevice: ");
+  Serial.print(deviceType);
+  
+  //  If index is 0 or 1 for device 0 or 1
+  switch (index) {
+    case 0:
+      venthoodLights.turnDeviceOn();
+      break;
+    case 1:
+      venthoodFan.turnDeviceOn();
+      break;
+  
+    default:
+      return -1;
+      break;
   }
+  return 104;
 }
 
-void setup() {
-    Serial.begin(9600);
-    while (!wifiCommissioning());
-    Particle.connect();
-
-    pinMode(CH_A, OUTPUT);
-    pinMode(CH_B, OUTPUT);
-    pinMode(CH_C, OUTPUT);
-    pinMode(ENABLE, OUTPUT);
-    pinMode(LIGHT_STATE, INPUT);
-    pinMode(TASTI_READ, INPUT);
-
-//    venthoodGesture.init();
-    functionTest.stop();
-
-    Particle.function("setvalue", setPercentage);
-    Particle.function("onoff", onoffDevice);
-}
-
-void loop() {
-    venthoodFan.process();
-    venthoodLights.process();
-    venthoodGesture.process();
-    static unsigned long prevTime = millis();
-    if ((millis() - prevTime) > 5000) {
-      Serial.println("TESTING TESTING");
-      prevTime = millis();
-    }
-
-    if (venthoodFan.getLongPressedBoolean()) {
+int turnOffDevice(String args) {
+  int index = args.toInt();
+  char applianceArgs[MAX_ARGS];
+  
+  args.toCharArray(applianceArgs, MAX_ARGS);
+  
+  sscanf(applianceArgs, "%d", &index);
+  
+  Serial.print("\nOn/Off\n");
+  Serial.print("Argument Value: ");
+  Serial.print(args);
+  Serial.print("\nDevice: ");
+  Serial.print(index ? "Fan" : "Lights");
+  
+  //  If index is 0 or 1 for device 0 or 1
+  switch (index) {
+    case 0:
       venthoodLights.turnDeviceOff();
-      venthoodFan.setLongPressedBoolean(false);
-    }
+      break;
+    case 1:
+      venthoodFan.turnDeviceOff();
+      break;
+  
+    default:
+      return -1;
+      break;
+  }
+  return 104;
 }
 
 int onoffDevice(String args) {
@@ -470,4 +495,41 @@ int setPercentage(String args) {
           break;
     }
     return powerLevel;
+}
+
+void setup() {
+    Serial.begin(9600);
+    while (!wifiCommissioning());
+    Particle.connect();
+
+    pinMode(CH_A, OUTPUT);
+    pinMode(CH_B, OUTPUT);
+    pinMode(CH_C, OUTPUT);
+    pinMode(ENABLE, OUTPUT);
+    pinMode(LIGHT_STATE, INPUT);
+    pinMode(TASTI_READ, INPUT);
+
+//    venthoodGesture.init();
+    functionTest.stop();
+
+    Particle.function("setvalue", setPercentage);
+    Particle.function("on", turnOnDevice);
+    Particle.function("off", turnOffDevice);
+    Particle.function("onoff", onoffDevice);
+}
+
+void loop() {
+    venthoodFan.process();
+    venthoodLights.process();
+    venthoodGesture.process();
+    static unsigned long prevTime = millis();
+    if ((millis() - prevTime) > 5000) {
+      Serial.println("TESTING TESTING");
+      prevTime = millis();
+    }
+
+    if (venthoodFan.getLongPressedBoolean()) {
+      venthoodLights.turnDeviceOff();
+      venthoodFan.setLongPressedBoolean(false);
+    }
 }
