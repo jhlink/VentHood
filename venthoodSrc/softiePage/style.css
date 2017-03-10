@@ -1,0 +1,195 @@
+@font-face {
+  font-family: 'FSEmeric-Medium';
+  src: url('FSEmeric-Medium.woff') format('woff');
+}
+@font-face {
+  font-family: 'FSEmeric-Regular';
+  src: url('FSEmeric-Regular.woff') format('woff');
+}
+html * {
+  height: 100%;
+  margin: auto;
+  font-family: 'FSEmeric-Regular';
+  background-color: white
+}
+span.circle {
+  position: relative;
+  top: -1px;
+  left: -21px;
+  width: 15px;
+  height: 15px;
+  -webkit-border-radius: 7.5px;
+  -moz-border-radius: 7.5px;
+  border-radius: 7.5px;
+  background: #EF4438;
+  margin-left: 40px;
+  display: inline-block
+}
+span.circle_open {
+  position: relative;
+  top: -1px;
+  left: -19px;
+  width: 12px;
+  height: 12px;
+  -webkit-border-radius: 9px;
+  -moz-border-radius: 9px;
+  border-radius: 9px;
+  border: 2px solid #EF4438;
+  display: inline-block;
+  margin-left: 40px;
+  background-color: white;
+}
+hr.style {
+  border-top: 2px solid #EF4438;
+  position: relative;
+  top: 9px;
+  width: 180px;
+  margin: auto;
+}
+body {
+  box-sizing: border-box;
+  min-height: 100%;
+  padding: 20px;
+  background-color: white;
+  font-weight: normal;
+  color: black;
+  margin-top: 0;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0;
+  max-width: 400px;
+  text-align: center;
+  border-radius: 10px
+}
+div {
+  margin-top: 25px;
+  margin-bottom: 25px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center
+}
+h2 {
+  margin-bottom: 25px;
+}
+button {
+  border-color: black;
+  background-color: white;
+  color: black;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  width: 170px; 
+}
+button.input-helper {
+  background-color: #F1582C;
+  border-color: #F1582C;
+  color: white;
+}
+button:disabled {
+  background-color: #bebebe;
+  border-color: #bebebe;
+  color: white
+}
+input[type='text'],
+input[type='password'] {
+  background-color: #E9E9E9;
+  color: black;
+  border-color: black;
+  border-radius: 10px;
+  height: 25px;
+  text-align: center;
+  font-size: 15px;
+  margin: 5px;
+}
+::-webkit-input-placeholder { 
+  color: #7E7E7E;
+}
+input:disabled {
+  background-color: #bebebe;
+  border-color: #bebebe
+}
+input[type='radio'] {
+  position: relative;
+  bottom: -3px;
+  margin: 0;
+  border: 0;
+  height: 1.5em;
+  width: 15%;
+}
+label {
+  position: relative;
+  bottom: 2px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+  padding-left: 5%;
+  width: 80%;
+  text-align: left;
+  background-color: transparent;
+}
+input[type='radio']:checked+label {
+  font-weight: bold;
+  color: #1c75be;
+}
+ol {
+  text-align: left;
+}
+p {
+  text-align: left;
+  margin-left: 25px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.radio-div {
+  text-align: left;
+  box-sizing: border-box;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  background-color: white;
+  color: #6e6e70;
+  border: 2px solid #6e6e70;
+  border-radius: 10px;
+  width: 75%;
+  padding: 5px;
+}
+.scanningerror {
+  font-weight: bold;
+  text-align: center
+}
+.relative {
+  position: relative;
+  top: -4px;
+  float: left;
+}
+#email-req {
+  color: red;
+  margin-top: 20px;
+  margin-bottom: -3px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  position: relative;
+  left: -72px;
+  font-size: 13px;
+  background-color: transparent;
+}
+#scan-button {
+  min-width: 200px;
+  width: 75%;
+}
+#connect-button,
+#update-button {
+  display: block;
+  min-width: 100px;
+  margin-top: 20px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 20px
+}
+#password {
+  /*margin-top: 0px;*/
+  margin-bottom: 10px
+}
+#logo {
+  max-width: 100%;
+  height: auto
+}

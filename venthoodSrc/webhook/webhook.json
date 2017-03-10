@@ -1,0 +1,17 @@
+{
+  "event": "alexa-config",
+  "url": "[SEE DOCUMENTATION FOR DETAILS]",
+  "requestType": "POST",
+  "headers": {
+    "x-api-key": "[SEE DOCUMENTATION FOR DETAILS]"
+  },
+  "json": {
+    "amznEmail": "{{amznEmail}}",
+    "deviceID": "{{PARTICLE_DEVICE_ID}}",
+    "fanDeviceName": "{{fanDeviceName}}",
+    "lightDeviceName": "{{lightDeviceName}}"
+  },
+  "mydevices": false,
+  "noDefaults": true,
+  "rejectUnauthorized": true
+}

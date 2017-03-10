@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <link rel='stylesheet' type='text/css' href='style.css'>
+        <img src='1BLogo.svg' id='logo' alt='firstbuild'>
+    </head>
+    <body>
+        <div id='progress-line' style='inline'>
+          <hr class='style'>
+          <span id='stage1' class='circle'></span>
+          <span id='stage2' class='circle_open'></span>
+          <span id='stage3' class='circle_open'></span>
+          <span id='stage4' class='circle_open'></span>
+        </div>
+        <div id='hood-device-div' style='display: block'>
+          <h2>Name your Venthood<br>lights and fan.</h2>
+          <form id='venthood-form'>
+            <input type='text' id='light' size='25' placeholder='Venthood Light' />
+            <input type='text' id='fan' size='25' placeholder='Venthood Exhaust' />
+            <div id='email-req'>*Required</div>
+            <input type='text' id='email' size='25' placeholder='Amazon Email' />
+            <button type='submit' class='input-helper' id='update-button'>Submit</button>
+          </form>
+        </div>
+        <div id='scan-div' style='display: none'>
+          <button type='button' class='input-helper' id='scan-button'>Find Your Home Network</button>
+        </div>
+        <div id='networks-div'></div>
+        <div id='connect-div' style='display: none'>
+          <form id='connect-form'>
+            <div id='email-req'>*Required</div>
+            <input type='password' id='password' size='25' placeholder='Password' />
+            <button type='button' class='input-helper' id='show-button'>Show Password</button>
+            <button type='submit' class='input-helper' id='connect-button'>Connect</button>
+          </form>
+        </div>
+        <div id='finish-div' style='display: none'>
+          <h2>Open your Alexa app</h2>
+          <ol>
+            <li>Go to Skills.</li>
+            <li>Enable the FirstBuild Venthood Smarthome skill.</li>
+            <li>Enter your Amazon login info!</li>
+          </ol>
+          <p>that's it, tell Alexa to turn on the lights!</p>
+          <p>(if it's not working re-start the commissioning process</p>
+        </div>
+        <script src='rsa-utils/jsbn_1.js'></script>
+        <script src='rsa-utils/jsbn_2.js'></script>
+        <script src='rsa-utils/prng4.js'></script>
+        <script src='rsa-utils/rng.js'></script>
+        <script src='rsa-utils/rsa.js'></script>
+        <script src='softap.js'></script>
+        <script src='devnam.js'></script>
+    </body>
+</html>
