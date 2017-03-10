@@ -51,10 +51,10 @@ const REQUEST_SET_PERCENTAGE = "SetPercentageRequest";
 const RESPONSE_SET_PERCENTAGE = "SetPercentageConfirmation";
 
 const REQUEST_INCREMENT_PERCENTAGE = "IncrementPercentageRequest";
-const RESPONSE_INCREMENT_PERCENTAGE = "IncrementPercentageRequest";
+const RESPONSE_INCREMENT_PERCENTAGE = "IncrementPercentageConfirmation";
 
 const REQUEST_DECREMENT_PERCENTAGE = "DecrementPercentageRequest";
-const RESPONSE_DECREMENT_PERCENTAGE = "DecrementPercentageRequest";
+const RESPONSE_DECREMENT_PERCENTAGE = "DecrementPercentageConfirmation";
 
 // errors
 
@@ -67,8 +67,8 @@ const ERROR_UNEXPECTED_INFO = "UnexpectedInformationReceivedError";
  */
 exports.handler = function(event, context) {
   log('Received Directive', event);
-  var requestedNamespace = event.header.namespace;
 
+  var requestedNamespace = event.header.namespace;
   switch (requestedNamespace) {
 
     /**
@@ -110,7 +110,6 @@ function handleDiscovery(event, context) {
   var headers = createHeader(NAMESPACE_DISCOVERY, RESPONSE_DISCOVER);
   var processedPayload = {};
   log('Discovery', 'Handling discovery..');
-  
   if (event.header.name == REQUEST_DISCOVER) {
     requestForUserEmail(event)
       .then(requestForUserDeviceProfiles, log)
@@ -141,14 +140,23 @@ function handleControl(event, context) {
   requestForDeviceServiceAccessToken(event)
     .then(constructDeviceCommand, log)
     .then(submitHttpRequest, log)
-    .then(log, log);
+    .then(function notifyAlexa(result) {
+        log('Control', result);
+        context.succeed(result);
+    }, function notifyAlexa(result) {
+        log('Control', result);
+        context.fail(result);
+    });
 }
 
 function constructDeviceCommand(event) {
   var requestedName = event.header.name;
   var accessToken = event.payload.accessToken;
-  var deviceId = event.payload.appliance.applianceId;
-  var deviceType = event.payload.appliance.additionalApplianceDetails.type;
+  
+  
+  var deviceTypeAndID = event.payload.appliance.applianceId;
+  var deviceId = deviceTypeAndID.split("_").pop();
+  var deviceType = deviceTypeAndID.split("_").shift();
   var message_id = event.header.messageId;
   
   var param = "";
@@ -222,7 +230,7 @@ function constructDeviceCommand(event) {
     // 2 =  decrement
       
     default:
-      console.log("nothing worked... :(");
+      console.log("nothing worked... :'(");
       break;
   }
   
@@ -241,6 +249,7 @@ function constructDeviceCommand(event) {
 }
 
 function submitHttpRequest(postInfo) {
+    
     // Submitting HTTPS REQUEST
   var options = {
     hostname: serviceHostName,
@@ -257,8 +266,18 @@ function submitHttpRequest(postInfo) {
      var test = https.request(options, function httpsCallback(response) {
         
         response.on('error', function ohno(input) {
+            
+            var headers = createHeader(NAMESPACE_CONTROL, "TargetHardwareMalfunctionError");
+            var payloads = {};
+            var result = {
+              header: headers,
+              payload: payloads
+            };
+            var test = JSON.parse(input);
             console.log(input.toString('utf-8'));
-          reject("ERROR", input.toString('utf-8'));
+            console.log(test.return_value);
+            reject(result);
+            
         });
         response.on('data', function ohyes(input) {
             var headers = createHeader(NAMESPACE_CONTROL, postInfo.msg);
@@ -270,11 +289,22 @@ function submitHttpRequest(postInfo) {
             var test = JSON.parse(input);
             console.log(input.toString('utf-8'));
             console.log(test.return_value);
-            resolve("SUCCESS", result);
+            resolve(result);
         });
      });
       test.on('error', (e) => {
           console.log('Request Error: ' + e);
+            
+            var headers = createHeader(NAMESPACE_CONTROL, "TargetHardwareMalfunctionError");
+            var payloads = {};
+            var result = {
+              header: headers,
+              payload: payloads
+            };
+            var test = JSON.parse(e);
+            console.log(e.toString('utf-8'));
+            console.log(test.return_value);
+            reject(result);
       });
       test.write(postInfo.data);
       test.end();
@@ -331,13 +361,20 @@ function requestForUserEmail(event) {
   var accessToken = event.payload.accessToken;
   return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
     var amazonProfileURL = 'https://api.amazon.com/user/profile?access_token=' + accessToken;
-    https.request(amazonProfileURL, function processProfileResponse(error, response, body) {
-      if (response.statusCode == 200) {
-        var profile = JSON.parse(body);
-        resolve(profile.email);
-      } else {
-        reject("ERROR", "Cannot obtain user email (LWA).");
-      }
+    
+    console.log(amazonProfileURL);
+    var getRequest = https.get(amazonProfileURL, function processProfileResponse(res) {
+        res.on('data', function procInput(rawData) {
+            var jsonData = JSON.parse(rawData);
+            var userEmailAddr = jsonData.email;
+            console.log(userEmailAddr);
+            return resolve(userEmailAddr);
+        });
+    });
+    getRequest.on('error', function ohno(err) {
+        var processedData = JSON.parse(err);
+        console.log("ERROR OUTSIDE" + processedData);
+        reject(processedData);
     });
   });
 }
@@ -379,6 +416,7 @@ function retrieveItemFromDynamoDB(getItemParam) {
       } else {
         // Convert DynamoDB Wrapped JSON object into regular JSON object.
         dynamoDBData = attr.unwrap(data.Item);
+        console.log(dynamoDBData);
         resolve(dynamoDBData);
       }
     });
@@ -387,7 +425,7 @@ function retrieveItemFromDynamoDB(getItemParam) {
 
 function createVenthoodLightObject(deviceID, friendlyDeviceName) {
   return {
-    applianceId: deviceID,
+    applianceId: "light_" + deviceID,
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
@@ -399,16 +437,13 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
       "decrementPercentage",
       "turnOn",
       "turnOff"
-    ],
-    additionalApplianceDetails: {
-      type: "light"
-    } 
+    ]
   };
 }
 
 function createVenthoodFanObject(deviceID, friendlyDeviceName) {
   return {
-    applianceId: deviceID,
+    applianceId: "fan_" + deviceID,
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
@@ -419,10 +454,7 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
       "setPercentage",
       "turnOn",
       "turnOff"
-    ],
-    additionalApplianceDetails: {
-      type: "fan"
-    }
+    ]
   };
 }
 
@@ -434,6 +466,7 @@ function assembleApplianceIdObjects(deviceIdPayload) {
  
   appliances.push(createVenthoodFanObject(deviceID, fanName));
   appliances.push(createVenthoodLightObject(deviceID, lightName));
+  console.log(appliances);
   
   return appliances;
 }

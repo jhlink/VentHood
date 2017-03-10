@@ -6,10 +6,10 @@
     "x-api-key": "[SEE DOCUMENTATION FOR DETAILS]"
   },
   "json": {
-    "amznEmail": "{{DATA.AMZN_EMAIL}}",
+    "amznEmail": "{{amznEmail}}",
     "deviceID": "{{PARTICLE_DEVICE_ID}}",
-    "fanDevName": "{{DATA.FAN_DEV_NAME}}",
-    "lightDevName": "{{DATA.LIGHT_DEV_NAME}}"
+    "fanDeviceName": "{{fanDeviceName}}",
+    "lightDeviceName": "{{lightDeviceName}}"
   },
   "mydevices": false,
   "noDefaults": true,
