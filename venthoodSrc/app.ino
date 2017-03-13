@@ -418,7 +418,6 @@ void setup() {
   Particle.function("setvalue", setPercentage);
   Particle.function("on", turnOnDevice);
   Particle.function("off", turnOffDevice);
-  Particle.function("onoff", onoffDevice);
 }
 
 void loop() {
@@ -435,8 +434,8 @@ void loop() {
     System.reset();
   }
 
-  //if (venthoodFan.getLongPressedBoolean()) {
-  //  venthoodLights.turnDeviceOff();
-  //  venthoodFan.setLongPressedBoolean(false);
-  //}
+  if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {
+    WiFi.clearCredentials();
+    System.reset();
+  }
 }

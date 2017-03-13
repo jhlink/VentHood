@@ -38,6 +38,7 @@ class AnalogInputDebounced {
     bool isActive(void);
     bool isUniquelyActive(void);
     bool isLongPressed(void);
+    void setLongPressedTimeout(unsigned long timeLimit);
 
   private:
     bool m_prevState;
@@ -50,7 +51,7 @@ class AnalogInputDebounced {
     unsigned long m_timeTracker;
 
     template <typename T>
-    bool checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound);
+      bool checkInRange(const T& valueToCheck, const T& lowerBound, const T& upperBound);
 
 };
 

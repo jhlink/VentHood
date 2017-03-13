@@ -35,7 +35,7 @@
 #endif
 
 #ifndef FAN_WIFI_RESET_SIGNAL_TIMEOUT
-#define FAN_WIFI_RESET_SIGNAL_TIMEOUT 5000
+#define FAN_WIFI_RESET_SIGNAL_TIMEOUT 2000
 #endif
 
 #ifndef DEFAULT_BRIGHTNESS
@@ -45,6 +45,7 @@
 #ifndef APDS9960_INT
 #define APDS9960_INT D6
 #endif
+
 
 const int LIGHT_BTN_VOLTAGE = 2450;
 const int POWER_BTN_VOLTAGE = 1820;
@@ -103,8 +104,7 @@ class Fan : public Device {
         void turnDeviceOff(void);
         void turnDeviceOn(void);
         void process(void);
-        bool getLongPressedBoolean();
-        void setLongPressedBoolean(bool inputBool);
+        bool wasPowerButtonLongPressed();
 };
 
 class Gesture: public Device {

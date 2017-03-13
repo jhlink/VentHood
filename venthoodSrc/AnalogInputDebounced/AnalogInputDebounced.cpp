@@ -34,7 +34,6 @@ AnalogInputDebounced::AnalogInputDebounced(int pin, int targetVoltage) : m_prevS
 {}
 
 void AnalogInputDebounced::updateInput(void) {
-
   if ((millis() - m_timeTracker) < UPDATE_TIME) {
     return;
   } else {
@@ -58,6 +57,10 @@ void AnalogInputDebounced::updateInput(void) {
       m_inputState = false;
     }
   }
+}
+
+void setLongPressedTimeout(unsigned long timeLimit) {
+  this.m_longPressTimeout = timeLimit;
 }
 
 bool AnalogInputDebounced::isUniquelyActive(void) {
