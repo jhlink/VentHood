@@ -23,6 +23,7 @@ from __future__ import print_function
 
 import logging, json
 import boto3, os
+from boto3.dynamodb.conditions import Key
 
 # enable basic logging to CloudWatch Logs
 logger = logging.getLogger()
@@ -33,9 +34,11 @@ dynamodb = boto3.resource('dynamodb')
 crdDB = os.environ['credentialDatabase']
 table = dynamodb.Table(crdDB)
 
-
 def lambda_handler(event, context):
-
+    emailsInDatabase = getExistingDeviceCredentials(event['deviceID'])
+    if (emailsInDatabase):
+        deleteOldDeviceCredentials(emailsInDatabase)
+    
     deviceID = event['deviceID']
     amazonEmail = event['amznEmail']
     fanDeviceName = event['fanDeviceName']
@@ -43,11 +46,29 @@ def lambda_handler(event, context):
 
     table.put_item(
         Item={
-            'device-id' : deviceID,
-            'amzn-email' : amazonEmail,
-            'fan-device-name' : fanDeviceName,
-            'light-device-name' : lightDeviceName
+            'device_id' : deviceID,
+            'amzn_email' : amazonEmail,
+            'fan_device_name' : fanDeviceName,
+            'light_device_name' : lightDeviceName
         }
     )
     print(event)
     return('Success!')
+
+def getExistingDeviceCredentials(deviceID):
+    response = table.query(
+        IndexName='device_id_index',
+        KeyConditionExpression=Key('device_id').eq(deviceID)
+    )
+    queryResponse = response['Items']
+    emailList = []
+    for email in queryResponse:
+        emailList.append(email['amzn_email'])
+    print(emailList)
+    return emailList
+
+def deleteOldDeviceCredentials(emailAddresses):
+    for email in emailAddresses:
+        response = table.delete_item(
+            Key={'amzn_email' : email}
+        )
