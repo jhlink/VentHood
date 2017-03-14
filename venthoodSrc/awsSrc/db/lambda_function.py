@@ -38,9 +38,13 @@ def lambda_handler(event, context):
     emailsInDatabase = getExistingDeviceCredentials(event['deviceID'])
     if (emailsInDatabase):
         deleteOldDeviceCredentials(emailsInDatabase)
-    
+    storeDeviceCredentials(event)
+    return('Success!')
+
+def storeDeviceCredentials(event):
+    print('Storing device credentials');
     deviceID = event['deviceID']
-    amazonEmail = event['amznEmail']
+    amazonEmail = event['amznEmail'].lower()
     fanDeviceName = event['fanDeviceName']
     lightDeviceName = event['lightDeviceName']
 
@@ -52,10 +56,9 @@ def lambda_handler(event, context):
             'light_device_name' : lightDeviceName
         }
     )
-    print(event)
-    return('Success!')
 
 def getExistingDeviceCredentials(deviceID):
+    print('Getting device credentials')
     response = table.query(
         IndexName='device_id_index',
         KeyConditionExpression=Key('device_id').eq(deviceID)
@@ -68,6 +71,7 @@ def getExistingDeviceCredentials(deviceID):
     return emailList
 
 def deleteOldDeviceCredentials(emailAddresses):
+    print('Eliminating old emails')
     for email in emailAddresses:
         response = table.delete_item(
             Key={'amzn_email' : email}
