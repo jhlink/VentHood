@@ -153,11 +153,11 @@ function constructDeviceCommand(event) {
   var requestedName = event.header.name;
   var accessToken = event.payload.accessToken;
   
-  
   var deviceTypeAndID = event.payload.appliance.applianceId;
   var deviceId = deviceTypeAndID.split("_").pop();
   var deviceType = deviceTypeAndID.split("_").shift();
   var message_id = event.header.messageId;
+  var deviceName = event.payload.appliance.additionalApplianceDetails.userProvidedName;
   
   var param = "";
   var state = 0;
@@ -249,8 +249,7 @@ function constructDeviceCommand(event) {
 }
 
 function submitHttpRequest(postInfo) {
-    
-    // Submitting HTTPS REQUEST
+  // Submitting HTTPS REQUEST
   var options = {
     hostname: serviceHostName,
     port: 443,
@@ -339,24 +338,6 @@ function createHeader(namespace, name) {
   };
 }
 
-function generateControlError(name, code, description) {
-  var headers = createHeader(NAMESPACE_CONTROL, name);
-
-  var payload = {
-    exception: {
-      code: code,
-      description: description
-    }
-  };
-
-  var result = {
-    header: headers,
-    payload: payload
-  };
-
-  return result;
-}
-
 function requestForUserEmail(event) {
   var accessToken = event.payload.accessToken;
   return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
@@ -432,6 +413,9 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
     friendlyName: friendlyDeviceName === "" ?  'Venthood Lights' : friendlyDeviceName,
     friendlyDescription: 'The lights in your FirstBuild made Voice Venthood.',
     isReachable: true,
+    additionaApplianceDetails: {
+      userProvidedName: friendlyDeviceName
+    },
     actions:[
       "incrementPercentage",
       "decrementPercentage",
@@ -450,6 +434,9 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
     friendlyName: friendlyDeviceName === "" ?  'Venthood Exhaust' : friendlyDeviceName,
     friendlyDescription: 'The exhaust in your FirstBuild made Voice Venthood.',
     isReachable: true,
+    additionaApplianceDetails: {
+      userProvidedName: friendlyDeviceName
+    },
     actions:[
       "setPercentage",
       "turnOn",

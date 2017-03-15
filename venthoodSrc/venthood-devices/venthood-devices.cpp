@@ -203,7 +203,7 @@ void Light::process(void) {
 
   checkingForLightButton.updateInput();
 
-  if (checkingForLightButton.isUniquelyActive()) {
+  if (checkingForLightButton.onPress()) {
     lightState = (lightState + 1) % 3;
     percentBrightness = lightState == 1 ? 100 : 50;
     percentBrightness = lightState == 0 ? 0 : percentBrightness;
@@ -223,7 +223,7 @@ void Light::process(void) {
 
 
 Fan::Fan(bool inputDeviceState = false) :
-  Device(inputDeviceState), fanSpeed(Off), prevState(Off), longPressedBtn(false) {
+  Device(inputDeviceState), fanSpeed(Off), prevState(Off) {
 
     checkingForFanLowButton = AnalogInputDebounced(TASTI_READ,  FAN_LOW_BTN_VOLTAGE);
     checkingForFanMedButton = AnalogInputDebounced(TASTI_READ, FAN_MED_BTN_VOLTAGE);
@@ -324,32 +324,31 @@ void Fan::process(void) {
   checkingForFanMedButton.updateInput();
   checkingForFanLowButton.updateInput();
 
-  if (checkingForPowerButton.isUniquelyActive()) {
+  if (checkingForPowerButton.onPress()) {
+    Serial.println("Power button on press");
     onOffState = false;
     fanSpeed = Off;
-  } else if (checkingForFanLowButton.isUniquelyActive()) {
+  } else if (checkingForFanLowButton.onPress()) {
+    Serial.println("Fan Low button on press");
     onOffState = true;
     fanSpeed = Low;
-  } else if (checkingForFanMedButton.isUniquelyActive()) {
+  } else if (checkingForFanMedButton.onPress()) {
+    Serial.println("Fan Med button on press");
     onOffState = true;
     fanSpeed = Med;
-  } else if (checkingForFanHiButton.isUniquelyActive()) {
+  } else if (checkingForFanHiButton.onPress()) {
+    Serial.println("Fan Hi button on press");
     onOffState = true;
     fanSpeed = Hi;
-  } else if (checkingForPowerButton.isLongPressed()) {
+  } else if (checkingForFanHiButton.onLongPressed()) {
+    Serial.println("Fan Hi button on LONG press");
     onOffState = true;
-    longPressedBtn = true;
     fanSpeed = Boost;
   }
 }
 
 bool Fan::wasPowerButtonLongPressed() {
-  // Copying value of longpressedBtn and storing it to tempStorage.
-  bool tempStorage = longPressedBtn; 
-  // Reseting longPressedBtn value.
-  longPressedBtn = false
-
-  return tempStorage;
+  return checkingForPowerButton.onLongPressed();
 }
 
 // ---------------------

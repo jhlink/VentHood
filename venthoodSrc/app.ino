@@ -183,7 +183,7 @@ void factoryReset() {
 void publishDeviceCommissionInformation() {
   Serial.println("Publishing device info to Particle Cloud");
   if (jsonPayload.length() > 0) {
-    bool publishEventBool = Particle.publish("alexa-config", jsonPayload, 15, PRIVATE, WITH_ACK);
+    bool publishEventBool = Particle.publish("alexa-config", jsonPayload, 15, PRIVATE);
     if (publishEventBool) {
       Serial.println("Success: Particle Cloud has received data.");
     } else {
@@ -430,12 +430,14 @@ void loop() {
   }
 
   if (WiFi.listening()) {
+    Serial.println("Within listening mode within main loop. Leaving with System reset.");
     WiFi.clearCredentials();
     System.reset();
   }
 
   if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {
-    WiFi.clearCredentials();
-    System.reset();
+    Serial.println("Power button long pressed");
+   // WiFi.clearCredentials();
+   // System.reset();
   }
 }

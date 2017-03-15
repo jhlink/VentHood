@@ -35,7 +35,7 @@
 #endif
 
 #ifndef FAN_WIFI_RESET_SIGNAL_TIMEOUT
-#define FAN_WIFI_RESET_SIGNAL_TIMEOUT 2000
+#define FAN_WIFI_RESET_SIGNAL_TIMEOUT 3000
 #endif
 
 #ifndef DEFAULT_BRIGHTNESS
@@ -92,7 +92,6 @@ class Fan : public Device {
         AnalogInputDebounced checkingForFanMedButton;
         AnalogInputDebounced checkingForFanHiButton;
         AnalogInputDebounced checkingForPowerButton;
-        bool longPressedBtn;
 
         void setupFanRelayPins(void);
 
