@@ -50,4 +50,10 @@ if (updateButton.addEventListener) {
 } else if (updateButton.attachEvent) {
   venthoodForm.attachEvent('onsubmit', device_configure);
 }
-window.alert('You dont have to change the names but it can be easier if you get more connected lights or fans later on. Good examples of names to use are clear and easy for Alexa, like exhaust, lamp, turbo');
+var interval = setInterval(function() {
+  if (document.readyState === 'complete') {
+    clearInterval(interval);
+    window.alert('You dont have to change the names but it can be easier if you get more connected lights or fans later on. Good examples of names to use are clear and easy for Alexa, like exhaust, lamp, turbo');
+    done();
+  }
+}, 50);
