@@ -419,6 +419,7 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
     actions:[
       "incrementPercentage",
       "decrementPercentage",
+      "setPercentage",
       "turnOn",
       "turnOff"
     ]
