@@ -26,42 +26,6 @@
 #define DEBUG_PRINT(m)
 #endif
 
-//#undef MIME_TABLE( ENTRY ) \  ENTRY( MIME_TYPE_TLV = 0 ,                "application/x-tlv8"               ) \
-//    ENTRY( MIME_TYPE_APPLE_BINARY_PLIST,      "application/x-apple-binary-plist" ) \
-//    ENTRY( MIME_TYPE_APPLE_PROXY_AUTOCONFIG,  "application/x-ns-proxy-autoconfig") \
-//    ENTRY( MIME_TYPE_BINARY_DATA,             "application/octet-stream"         ) \
-//    ENTRY( MIME_TYPE_JAVASCRIPT,              "application/javascript"           ) \
-//    ENTRY( MIME_TYPE_JSON,                    "application/json"                 ) \
-//    ENTRY( MIME_TYPE_HAP_JSON,                "application/hap+json"             ) \
-//    ENTRY( MIME_TYPE_HAP_PAIRING,             "application/pairing+tlv8"         ) \
-//    ENTRY( MIME_TYPE_HAP_VERIFY,              "application/hap+verify"           ) \
-//    ENTRY( MIME_TYPE_TEXT_HTML,               "text/html"                        ) \
-//    ENTRY( MIME_TYPE_TEXT_PLAIN,              "text/plain"                       ) \
-//    ENTRY( MIME_TYPE_TEXT_CSS,                "text/css"                         ) \
-//    ENTRY( MIME_TYPE_IMAGE_PNG,               "image/png"                        ) \
-//    ENTRY( MIME_TYPE_IMAGE_GIF,               "image/gif"                        ) \
-//    ENTRY( MIME_TYPE_IMAGE_MICROSOFT,         "image/vnd.microsoft.icon"         ) \
-//    ENTRY( MIME_TYPE_ALL,                     "*/*"                              ) /* This must always be the last mimne*/
-//#define MIME_TABLE( ENTRY ) \
-//    ENTRY( MIME_TYPE_TLV = 0 ,                "application/x-tlv8"               ) \
-//    ENTRY( MIME_TYPE_APPLE_BINARY_PLIST,      "application/x-apple-binary-plist" ) \
-//    ENTRY( MIME_TYPE_APPLE_PROXY_AUTOCONFIG,  "application/x-ns-proxy-autoconfig") \
-//    ENTRY( MIME_TYPE_BINARY_DATA,             "application/octet-stream"         ) \
-//    ENTRY( MIME_TYPE_JAVASCRIPT,              "application/javascript"           ) \
-//    ENTRY( MIME_TYPE_JSON,                    "application/json"                 ) \
-//    ENTRY( MIME_TYPE_HAP_JSON,                "application/hap+json"             ) \
-//    ENTRY( MIME_TYPE_HAP_PAIRING,             "application/pairing+tlv8"         ) \
-//    ENTRY( MIME_TYPE_HAP_VERIFY,              "application/hap+verify"           ) \
-//    ENTRY( MIME_TYPE_TEXT_HTML,               "text/html"                        ) \
-//    ENTRY( MIME_TYPE_TEXT_PLAIN,              "text/plain"                       ) \
-//    ENTRY( MIME_TYPE_TEXT_CSS,                "text/css"                         ) \
-//    ENTRY( MIME_TYPE_IMAGE_PNG,               "image/png"                        ) \
-//    ENTRY( MIME_TYPE_IMAGE_GIF,               "image/gif"                        ) \
-//    ENTRY( MIME_TYPE_IMAGE_MICROSOFT,         "image/vnd.microsoft.icon"         ) \
-//    ENTRY( MIME_TYPE_FONT_WOFF,               "application/x-font-woff"          ) \
-//    ENTRY( MIME_TYPE_IMAGE_SVG_XML,           "image/svg+xml"                    ) \
-//    ENTRY( MIME_TYPE_ALL,                     "*/*"                              ) /* This must always be the last mimne*/
-
 #pragma SPARK_NO_PREPROCESSOR
 #include "Particle.h"
 #include "softap_http.h"
@@ -79,22 +43,23 @@ struct Page
   const char* url;
   const char* mime_type;
   const char* data;
+  const uint32_t length;
 };
 
 Page myPages[] = {
-  { "/index.html", "text/html", index_html },
-  { "/rsa-utils/rsa.js", "application/javascript", rsa_js },
-  { "/style.css", "text/css", style_css },
-  { "/rsa-utils/rng.js", "application/javascript", rng_js },
-  { "/rsa-utils/jsbn_2.js", "application/javascript", jsbn_2_js },
-  { "/rsa-utils/jsbn_1.js", "application/javascript", jsbn_1_js },
-  { "/devnam.js", "application/javascript", devnam_js },
-  { "/softap.js", "application/javascript", softap_js },
-  { "/rsa-utils/prng4.js", "application/javascript", prng4_js },
-  { "/1BLogo.svg", "image/svg+xml", OneBLogo_svg },
-  { "/FSEmeric-Regular.woff", "application/x-font-woff", NULL },
-  { "/FSEmeric-Medium.woff", "application/x-font-woff", NULL },
-  { nullptr }
+  { "/index.html", "text/html", index_html, 0 },
+  { "/rsa-utils/rsa.js", "application/javascript", rsa_js, 0 },
+  { "/style.css", "text/css", style_css, 0 },
+  { "/rsa-utils/rng.js", "application/javascript", rng_js, 0 },
+  { "/rsa-utils/jsbn_2.js", "application/javascript", jsbn_2_js, 0 },
+  { "/rsa-utils/jsbn_1.js", "application/javascript", jsbn_1_js, 0 },
+  { "/devnam.js", "application/javascript", devnam_js, 0 },
+  { "/softap.js", "application/javascript", softap_js, 0 },
+  { "/rsa-utils/prng4.js", "application/javascript", prng4_js, 0 },
+  { "/1BLogo.svg", "image/svg+xml", OneBLogo_svg, 0 },
+  { "/FSEmeric-Regular.woff", "application/octet-stream", (const char *)FSEmeric_Regular_woff, FSEmeric_Regular_woff_len },
+  { "/FSEmeric-Medium.woff", "application/octet-stream", (const char *)FSEmeric_Medium_woff, FSEmeric_Medium_woff_len },
+  { NULL, NULL, NULL, 0 }
 };
 
 //  Inputs pins
@@ -129,6 +94,23 @@ Gesture venthoodGesture = Gesture(venthoodLights, venthoodFan);
 bool lightMode = false;
 String jsonPayload = ""; 
 
+static void chunkedSender(Writer* result, const uint8_t *pData, uint32_t length) {
+  uint16_t chunkSize = 1028;
+
+  Serial.println("Sending chunked data.");
+
+  while ( length > 0 ) {
+    if (length <= chunkSize) {
+      chunkSize = length;
+    }
+    result->write(pData, chunkSize);
+    pData += chunkSize;
+    length -= chunkSize;
+    HAL_Delay_Milliseconds(10);
+  }
+
+  Serial.println("Data sent.");
+}
 
 void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved){
   Serial.printlnf("handling page %s", url);
@@ -176,112 +158,11 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
   if (idx==-1) {
     cb(cbArg, 0, 404, nullptr, nullptr);
   } else {
-    //if (idx==10) {
-    //  String contentLengthHeader = "Transfer-Encoding: gzip";
-    //  //contentLengthHeader.concat(String(FSEmeric_Regular_woff_len));
-
-    //  String contentTypeHeader = "Content-Type: ";
-    //  contentTypeHeader.concat(String(myPages[idx].mime_type));
-
-    //  char buff[contentLengthHeader.length() + 1];
-    //  //contentTypeHeader.toCharArray(buff, contentTypeHeader.length());
-    //  contentLengthHeader.toCharArray(buff, contentLengthHeader.length() + 1);
-
-    //  Header h(buff);
-    //  cb(cbArg, 0, 200, myPages[idx].mime_type, &h);
-    //} else {
-      String contentTypeHeader = "Content-Type: ";
-      contentTypeHeader.concat(String(myPages[idx].mime_type));
-      char buff[contentTypeHeader.length() + 1];
-      contentTypeHeader.toCharArray(buff, contentTypeHeader.length() + 1);
-      Header h(buff);
-      cb(cbArg, 0, 200, myPages[idx].mime_type, &h);
-    //}
-
-    uint16_t chpt = 0;
-    uint16_t dataLengthDifference = 0;
-    size_t magicNumber = 512;
-    uint16_t chunksSent = 4;
-    size_t fileSize = 0;
-    const uint8_t delayTime = 5;
-    switch (idx) {
-      case 10:
-        while (chpt < FSEmeric_Regular_woff_len) {
-          if ((FSEmeric_Regular_woff_len - chpt) < magicNumber) {
-            dataLengthDifference = FSEmeric_Regular_woff_len - chpt;
-            result->write(FSEmeric_Regular_woff + chpt, dataLengthDifference); 
-            chpt += dataLengthDifference;
-
-            //Serial.print("FINAL    ");
-            //Serial.println(chpt);
-            DEBUG_PRINT("FINAL    ");
-            DEBUG_PRINTLN(chpt);
-            break;
-          } else {
-            result->write(FSEmeric_Regular_woff + chpt, magicNumber);
-            chpt += magicNumber;
-            //Serial.print("CONT  ");
-            //Serial.println(chpt);
-            DEBUG_PRINT("CONT  ");
-            DEBUG_PRINTLN(chpt);
-          }
-          if (chunksSent > 0) {
-            chunksSent--;
-          } else { 
-            HAL_Delay_Milliseconds(delayTime);
-            chunksSent = 4;
-          }
-          result->write("\r\n");
-          //delay(10);
-          //HAL_Delay_Milliseconds(2);
-          //wiced_rtos_delay_milliseconds(10);
-        }
-        break;
-
-       // result->write(FSEmeric_Regular_woff, FSEmeric_Regular_woff_len);
-        //for(uint32_t i=0;i<FSEmeric_Regular_woff_len; i++) {
-        //  result->write((uint8_t)FSEmeric_Regular_woff[i]);
-        //}
-        //break;
-
-      case 11:
-        for(uint32_t i=0;i<FSEmeric_Medium_woff_len; i++) {
-          result->write((uint8_t)FSEmeric_Medium_woff[i]);
-        }
-        break;
-
-      default:
-        fileSize = strlen(myPages[idx].data);
-        while (chpt < fileSize) {
-          if ((fileSize - chpt) < magicNumber) {
-            dataLengthDifference = fileSize - chpt;
-            result->write((const uint8_t*) (myPages[idx].data + chpt), dataLengthDifference); 
-            chpt += dataLengthDifference;
-
-            //Serial.print("FINAL    ");
-            //Serial.println(chpt);
-            DEBUG_PRINT("FINAL    ");
-            DEBUG_PRINTLN(chpt);
-            break;
-          } else {
-            result->write((const uint8_t*)(myPages[idx].data + chpt), magicNumber);
-            chpt += magicNumber;
-            //Serial.print("CONT  ");
-            //Serial.println(chpt);
-            DEBUG_PRINT("CONT  ");
-            DEBUG_PRINTLN(chpt);
-          }
-          if (chunksSent > 0) {
-            chunksSent--;
-          } else { 
-            HAL_Delay_Milliseconds(delayTime);
-            chunksSent = 4;
-          }
-        }
-        result->write("\r\n");
-
-        HAL_Delay_Milliseconds(delayTime);
-        break;
+    cb(cbArg, 0, 200, (const char *)(&myPages[idx].mime_type[0]), nullptr);
+    if (myPages[idx].length == 0) {
+      chunkedSender(result, (const uint8_t *)(&myPages[idx].data[0]), strlen(&myPages[idx].data[0]));
+    } else {
+      chunkedSender(result, (const uint8_t *)(&myPages[idx].data[0]), myPages[idx].length);
     }
   }
 }
