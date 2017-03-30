@@ -26,6 +26,9 @@
 #define DEBUG_PRINT(m)
 #endif
 
+//#define GESTURE
+#define VOICE
+
 #pragma SPARK_NO_PREPROCESSOR
 #include "Particle.h"
 #include "softap_http.h"
@@ -370,6 +373,7 @@ void wifiReset() {
 void setup() {
   Serial.begin(9600);
 
+#ifdef VOICE
   System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "FirstBuild Vent Hood");
   System.set(SYSTEM_CONFIG_SOFTAP_SUFFIX, "RFDO");
   
@@ -377,6 +381,7 @@ void setup() {
   Particle.connect();
   while (!Particle.connected());
   publishDeviceCommissionInformation();
+#endif
 
   pinMode(CH_A, OUTPUT);
   pinMode(CH_B, OUTPUT);
@@ -385,11 +390,15 @@ void setup() {
   pinMode(LIGHT_STATE, INPUT);
   pinMode(TASTI_READ, INPUT);
 
+#ifdef GESTURE
   venthoodGesture.init();
+#endif
 
+#ifdef VOICE
   Particle.function("setvalue", setPercentage);
   Particle.function("on", turnOnDevice);
   Particle.function("off", turnOffDevice);
+#endif
 }
 
 void loop() {
