@@ -33,7 +33,7 @@
 
 #define VENTHOOD_VERSION_MAJOR 0
 #define VENTHOOD_VERSION_MINOR 3
-#define VENTHOOD_VERSION_PATCH 6
+#define VENTHOOD_VERSION_PATCH 7
 
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -385,7 +385,7 @@ void setup() {
   pinMode(LIGHT_STATE, INPUT);
   pinMode(TASTI_READ, INPUT);
 
-  //venthoodGesture.init();
+  venthoodGesture.init();
 
   Particle.function("setvalue", setPercentage);
   Particle.function("on", turnOnDevice);
