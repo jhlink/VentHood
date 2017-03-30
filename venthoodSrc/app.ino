@@ -58,7 +58,6 @@ Page myPages[] = {
   { "/rsa-utils/prng4.js", "application/javascript", prng4_js, 0 },
   { "/1BLogo.svg", "image/svg+xml", OneBLogo_svg, 0 },
   { "/FSEmeric-Regular.woff", "application/octet-stream", (const char *)FSEmeric_Regular_woff, FSEmeric_Regular_woff_len },
-  { "/FSEmeric-Medium.woff", "application/octet-stream", (const char *)FSEmeric_Medium_woff, FSEmeric_Medium_woff_len },
   { NULL, NULL, NULL, 0 }
 };
 
@@ -166,7 +165,6 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
     }
   }
 }
-
 
 STARTUP(softap_set_application_page_handler(myPage, nullptr));
 
@@ -291,51 +289,6 @@ int turnOffDevice(String args) {
   return 104;
 }
 
-int onoffDevice(String args) {
-  int index = args.toInt();
-  int value = 0;
-  char applianceArgs[MAX_ARGS];
-
-  args.toCharArray(applianceArgs, MAX_ARGS);
-
-  sscanf(applianceArgs, "%d=%d", &index, &value);
-
-  Serial.println();
-  Serial.print("On/Off");
-  Serial.println();
-  Serial.print("Argument Value: ");
-  Serial.print(args);
-  Serial.println();
-  Serial.print("Device: ");
-  Serial.print(index ? "Fan" : "Lights");
-  Serial.println();
-  Serial.print("Value: ");
-  Serial.print(value);
-  Serial.println();
-
-  //  If index is 0 or 1 for device 0 or 1
-  switch (index) {
-    case 0:
-      //  Turn on lights
-      if (value == 1) {
-        venthoodLights.turnDeviceOn();
-      } else {
-        venthoodLights.turnDeviceOff();
-      }
-      break;
-    case 1:
-      //  Turn on Fan
-      if (value == 1) {
-        venthoodFan.turnDeviceOn();
-      } else {
-        venthoodFan.turnDeviceOff();
-      }
-      break;
-  }
-
-  return index;
-}
-
 int setPercentage(String args) {
   int index = args.toInt();
   int value = 0;
@@ -416,8 +369,6 @@ void setup() {
   pinMode(TASTI_READ, INPUT);
 
   //venthoodGesture.init();
-  //functionTest.stop();
-
 
   Particle.function("setvalue", setPercentage);
   Particle.function("on", turnOnDevice);
