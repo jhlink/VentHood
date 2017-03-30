@@ -185,7 +185,7 @@ function connectionPoll() {
       return;    
     } else if (z.status !== 200) {
       window.alert('Your connection has been interrupted.\\n\\nPlease restart the setup process.');
-      window.location.href = 'http://www.example.com';
+      window.location.href = 'http://www.firstbuild.com/voiceventhood';
     }
   };
   z.open('GET', base_url + 'alive', true);

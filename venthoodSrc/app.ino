@@ -111,7 +111,7 @@ static void chunkedSender(Writer* result, const uint8_t *pData, uint32_t length)
   Serial.println("Data sent.");
 }
 
-void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved){
+void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved) {
   Serial.printlnf("handling page %s", url);
 
   if (strcmp(url,"/index")==0) {
@@ -168,20 +168,6 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
 
 STARTUP(softap_set_application_page_handler(myPage, nullptr));
 
-void wifiReset() {
-  static unsigned long timer = millis();
-  if ((millis() - timer) > 30000) {
-    WiFi.clearCredentials();
-    WiFi.listen();
-    timer = millis();
-  }
-}
-
-void factoryReset() {
-  WiFi.clearCredentials();
-  System.reset();
-}
-
 void publishDeviceCommissionInformation() {
   Serial.println("Publishing device info to Particle Cloud");
   if (jsonPayload.length() > 0) {
@@ -194,15 +180,6 @@ void publishDeviceCommissionInformation() {
   }
 }
 
-void testPublish() {
-  static unsigned long timer = millis();
-  jsonPayload = "{\"idx\":0,\"lightDeviceName\":\"lights\",\"fanDeviceName\":\"exhaust\",\"amznEmail\":\"james@firstbuild.com\"}";
-  if ((millis() - timer) > 15000) {
-    //  This is Spark json thing. 
-    publishDeviceCommissionInformation();
-    timer = millis();
-  }
-}
 
 bool wifiIsListening() {
   return !WiFi.listening();
@@ -313,6 +290,9 @@ int setPercentage(String args) {
   Serial.print("0%, 25%, 50%, 75%, 100%: ");
   Serial.print(powerLevel);
   Serial.println();
+  Serial.print("Increment or Decrement Identifier: ");
+  Serial.print(incDecIdentifier);
+  Serial.println();
 
   //  If index is 0 or 1 for device 0 or 1
   switch (index) {
@@ -324,6 +304,12 @@ int setPercentage(String args) {
       //    only features enabled. By default,
       //    brightness increments or decrements by 25.
 
+      //  SetPercentage is used for both 'dim' and 'brighten' 
+      //    functions from Alexa. This is why the current light brightness
+      //    is queried and incremented/decremented by one level. 
+      //  When a power level percentage is provided, the given percentage
+      //    will be divided by 50 to return the quotient, which defines
+      //    the power level.
       powerLevel = venthoodLights.getBrightnessLevel() / 50;
       if (incDecIdentifier == 1) {
         powerLevel++;
@@ -331,6 +317,10 @@ int setPercentage(String args) {
       } else if (incDecIdentifier == 2) {
         powerLevel--;
         Serial.println("DIMMED");
+      } else if (incDecIdentifier == -1) {
+        powerLevel = value / 50;
+        Serial.print("New Power level: ");
+        Serial.println(powerLevel);
       }
 
       powerLevel = powerLevel <= 2 ? powerLevel : 2;
@@ -349,6 +339,33 @@ int setPercentage(String args) {
   }
   return powerLevel;
 }
+
+/* -------- TEST Code -------- */
+void wifiResetAndPowerCycle() {
+  WiFi.clearCredentials();
+  System.reset();
+}
+
+void testPublish() {
+  static unsigned long timer = millis();
+  jsonPayload = "{\"idx\":0,\"lightDeviceName\":\"lights\",\"fanDeviceName\":\"exhaust\",\"amznEmail\":\"james@firstbuild.com\"}";
+  if ((millis() - timer) > 15000) {
+    //  This is Spark json thing. 
+    publishDeviceCommissionInformation();
+    timer = millis();
+  }
+}
+
+void wifiReset() {
+  static unsigned long timer = millis();
+  if ((millis() - timer) > 30000) {
+    WiFi.clearCredentials();
+    WiFi.listen();
+    timer = millis();
+  }
+}
+
+/* -------- END of TEST Code -------- */
 
 void setup() {
   Serial.begin(9600);
@@ -392,7 +409,7 @@ void loop() {
 
   if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {
     Serial.println("Power button long pressed");
-   // WiFi.clearCredentials();
-   // System.reset();
+    WiFi.clearCredentials();
+    System.reset();
   }
 }
