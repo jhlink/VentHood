@@ -173,5 +173,11 @@ exports.handler = function(event, context) {
       getOauthTokenFromService(process.env.SERVICE_ID)
         .then(storeDataIntoDatabase);
       break;
+
+    default:
+      getDataFromDatabase(process.env.SERVICE_ID)
+        .then(refreshOauthTokenFromService, getOauthTokenFromService)
+        .then(storeDataIntoDatabase);
+      break;
   }
 };
