@@ -26,7 +26,7 @@
 #define DEBUG_PRINT(m)
 #endif
 
-//#define GESTURE
+#undef GESTURE
 #define VOICE
 
 #pragma SPARK_NO_PREPROCESSOR
