@@ -60,6 +60,7 @@ const RESPONSE_DECREMENT_PERCENTAGE = "DecrementPercentageConfirmation";
 
 const ERROR_UNSUPPORTED_OPERATION = "UnsupportedOperationError";
 const ERROR_UNEXPECTED_INFO = "UnexpectedInformationReceivedError";
+const ERROR_TARGET_OFFLINE = "TargetOfflineError";
 
 /**
  * Main entry point.
@@ -109,7 +110,7 @@ function handleDiscovery(event, context) {
   //  Creating response header.
   var headers = createHeader(NAMESPACE_DISCOVERY, RESPONSE_DISCOVER);
   var processedPayload = {};
-  log('Discovery', 'Handling discovery..');
+  log('Discovery', event);
   if (event.header.name == REQUEST_DISCOVER) {
     requestForUserEmail(event)
       .then(requestForUserDeviceProfiles, log)
@@ -144,7 +145,7 @@ function handleControl(event, context) {
         log('Control', result);
         context.succeed(result);
     }, function notifyAlexa(result) {
-        log('Control', result);
+        log('Control Failure', result);
         context.fail(result);
     });
 }
@@ -170,8 +171,8 @@ function constructDeviceCommand(event) {
     deviceType = "1";
   }
   
-  log("Access Token: ", accessToken);
-  log("DeviceID: ", deviceId);
+//   log("Access Token: ", accessToken);
+//   log("DeviceID: ", deviceId);
   
   switch (requestedName) {
     case REQUEST_TURN_ON:
@@ -230,14 +231,14 @@ function constructDeviceCommand(event) {
     // 2 =  decrement
       
     default:
-      console.log("nothing worked... :'(");
+      log("Construct", event);
       break;
   }
   
   
 
-  var serviceDeviceAccessAndCommands = "args=" + param;
-  var devicePostPath = servicePostPath + deviceId + "/" + funcName;
+  var serviceDeviceAccessAndCommands = 'args=' + param;
+  var devicePostPath = servicePostPath + deviceId + '/' + funcName;
   
   var postStruction = {
       auth: accessToken,
@@ -262,48 +263,66 @@ function submitHttpRequest(postInfo) {
   };
   
   return new Promise(function promiseToSubmitHttpsRequest(resolve, reject) {
+     var requestHeaders = {};
+     var requestPayloads = {};
+     var requestResult = {};
      var test = https.request(options, function httpsCallback(response) {
-        
-        response.on('error', function ohno(input) {
-            
-            var headers = createHeader(NAMESPACE_CONTROL, "TargetHardwareMalfunctionError");
-            var payloads = {};
-            var result = {
-              header: headers,
-              payload: payloads
+        var responseHeaders = {};  
+        var responsePayloads = {};
+        var responseResult = {};
+        response.on('error', function serviceResponseErrorHandler(errorInput) {
+            if (response.statusCode === 404) {
+              responseHeaders = createHeader(NAMESPACE_CONTROL, ERROR_TARGET_OFFLINE);
+            } else {
+              responseHeaders = createHeader(NAMESPACE_CONTROL, ERROR_UNSUPPORTED_OPERATION);
+            }
+
+            responseResult = {
+              header: responseHeaders,
+              payload: responsePayloads
             };
-            var test = JSON.parse(input);
-            console.log(input.toString('utf-8'));
-            console.log(test.return_value);
-            reject(result);
-            
+
+            log('Response Error', errorInput);
+            return reject(responseResult);
         });
-        response.on('data', function ohyes(input) {
-            var headers = createHeader(NAMESPACE_CONTROL, postInfo.msg);
-            var payloads = {};
-            var result = {
-              header: headers,
-              payload: payloads
+        response.on('data', function serviceResponseSuccessHandler(input) {
+            responseHeaders = createHeader(NAMESPACE_CONTROL, postInfo.msg);
+            responseResult = {
+              header: responseHeaders,
+              payload: responsePayloads
             };
-            var test = JSON.parse(input);
-            console.log(input.toString('utf-8'));
-            console.log(test.return_value);
-            resolve(result);
+            var stringifiedBuffer = input.toString('utf-8');
+            var responseData = JSON.parse(stringifiedBuffer);
+            if (!responseData.connected) {
+                responseHeaders = createHeader(NAMESPACE_CONTROL, ERROR_TARGET_OFFLINE);
+                responseResult = {
+                  header: responseHeaders,
+                  payload: responseData
+                };
+                log('Response Failure', responseData);
+                return reject(responseResult);
+            }
+            log('Response Success', responseData);
+            resolve(responseResult);
         });
      });
-      test.on('error', (e) => {
-          console.log('Request Error: ' + e);
-            
-            var headers = createHeader(NAMESPACE_CONTROL, "TargetHardwareMalfunctionError");
-            var payloads = {};
-            var result = {
-              header: headers,
-              payload: payloads
-            };
-            var test = JSON.parse(e);
-            console.log(e.toString('utf-8'));
-            console.log(test.return_value);
-            reject(result);
+     test.setTimeout(5000, function requestTimeoutHandler() {
+         requestHeaders = createHeader(NAMESPACE_CONTROL, ERROR_TARGET_OFFLINE);
+         requestResult = {
+           header: requestHeaders,
+           payload: requestPayloads
+         };
+         log('Timeout', requestResult);
+         return reject(requestResult);
+     });
+     test.on('error', function requestErrorHandler(errorInput)  {
+          requestHeaders = createHeader(NAMESPACE_CONTROL, ERROR_UNEXPECTED_INFO);
+          requestResult = {
+            header: requestHeaders,
+            payload: requestPayloads 
+          };
+          log('Request Error', errorInput);
+          return reject(requestResult);
       });
       test.write(postInfo.data);
       test.end();
@@ -314,7 +333,13 @@ function submitHttpRequest(postInfo) {
  * Utility functions.
  */
 function log(title, msg) {
-  console.log(title + ": " + msg);
+    var msgBody = {};
+    try {
+        msgBody = JSON.stringify(msg);
+    } catch (e) {
+        msgBody = msg;
+    }
+  console.log(title + ': ' + msgBody);
 }
 
 function createMessageUUID() {
@@ -343,26 +368,17 @@ function requestForUserEmail(event) {
   return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
     var amazonProfileURL = 'https://api.amazon.com/user/profile?access_token=' + accessToken;
     
-    console.log(amazonProfileURL);
     var getRequest = https.get(amazonProfileURL, function processProfileResponse(res) {
         res.on('data', function procInput(rawData) {
             var jsonData = JSON.parse(rawData);
             var userEmailAddr = jsonData.email;
-            console.log(userEmailAddr);
             return resolve(userEmailAddr);
         });
     });
     getRequest.on('error', function ohno(err) {
-        var processedData = JSON.parse(err);
-        console.log("ERROR OUTSIDE" + processedData);
+        log("Login With Amazon Error", err);
         reject(processedData);
     });
-  });
-}
-
-function testRequestForUserEmail(accessToken) {
-  return new Promise(function promiseToRequestForUserEmail(resolve, reject) {
-    resolve("blah@amazon.com");
   });
 }
 
@@ -392,12 +408,11 @@ function retrieveItemFromDynamoDB(getItemParam) {
 
     db.getItem(getItemParam, function(err, data) {
       if (err) {
-        console.log('Failed to get data from database', err);
+        log('getItem Error', err);
         return reject("ERROR", "Cannot obtain device data from database.");
       } else {
         // Convert DynamoDB Wrapped JSON object into regular JSON object.
         dynamoDBData = attr.unwrap(data.Item);
-        console.log(dynamoDBData);
         resolve(dynamoDBData);
       }
     });
