@@ -411,6 +411,7 @@ void loop() {
   venthoodFan.process();
   venthoodLights.process();
 
+  #ifdef VOICE 
   if (WiFi.connecting()) {
     timer.start();
   }
@@ -420,4 +421,5 @@ void loop() {
     WiFi.clearCredentials();
     System.reset();
   }
+  #endif 
 }
