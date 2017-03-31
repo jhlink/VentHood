@@ -36,7 +36,7 @@
 
 #define VENTHOOD_VERSION_MAJOR 0
 #define VENTHOOD_VERSION_MINOR 3
-#define VENTHOOD_VERSION_PATCH 7
+#define VENTHOOD_VERSION_PATCH 8
 
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -368,7 +368,13 @@ void wifiReset() {
   }
 }
 
+void powerCycle() {
+  System.reset();
+}
+
 /* -------- END of TEST Code -------- */
+
+Timer timer(10000, powerCycle, true);
 
 void setup() {
   Serial.begin(9600);
@@ -404,16 +410,9 @@ void setup() {
 void loop() {
   venthoodFan.process();
   venthoodLights.process();
-  static unsigned long prevTime = millis();
-  if ((millis() - prevTime) > 5000) {
-    Serial.println("TESTING TESTING");
-    prevTime = millis();
-  }
 
-  if (WiFi.listening()) {
-    Serial.println("Within listening mode within main loop. Leaving with System reset.");
-    WiFi.clearCredentials();
-    System.reset();
+  if (WiFi.connecting()) {
+    timer.start();
   }
 
   if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {
