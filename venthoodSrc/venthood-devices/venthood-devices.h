@@ -98,8 +98,8 @@ class Fan : public Device {
     public:
         Fan(bool inputDeviceState);
         void setFanSpeed(int inputSpeed);
+        fanPowerLevel getCurrentFanSpeed(void);
         void executeFanChanges(void);
-        fanPowerLevel currentFanSpeed(void);
         void turnDeviceOff(void);
         void turnDeviceOn(void);
         void process(void);

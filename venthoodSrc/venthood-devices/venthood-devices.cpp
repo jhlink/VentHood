@@ -124,7 +124,6 @@ Light::Light(bool inputDeviceState = false) :
   }
 
 void Light::setBrightnessTo(int inputBrightness) {
-
   percentBrightness = inputBrightness;
   Serial.print("LIGHT BRIGHTNESS ");
   Serial.println(percentBrightness);
@@ -152,7 +151,6 @@ void Light::updateLightState() {
 }
 
 void Light::executeLightChanges(void) {
-
   int desiredState = 0;
   if (percentBrightness == 50) {
     desiredState = 2;
@@ -200,7 +198,6 @@ void Light::turnDeviceOn(void) {
 }
 
 void Light::process(void) {
-
   checkingForLightButton.updateInput();
 
   if (checkingForLightButton.onPress()) {
@@ -259,10 +256,16 @@ void Fan::setFanSpeed(int inputSpeed) {
       enumPlaceholder = Off;
       break;
   }
+  prevState = this->getCurrentFanSpeed();
   fanSpeed = enumPlaceholder;
 }
 
 void Fan::executeFanChanges(void) {
+  if (prevState == fanSpeed) {
+    //  Proposed change is the same as the current
+    //    fan speed. Therefore return early.
+    return;
+  }
   switch(fanSpeed) {
     case Off:
       switchToChannel(2);
@@ -298,13 +301,13 @@ void Fan::executeFanChanges(void) {
   }
 }
 
-fanPowerLevel Fan::currentFanSpeed(void) {
+fanPowerLevel Fan::getCurrentFanSpeed(void) {
   return fanSpeed;
 }
 
 void Fan::turnDeviceOff(void) {
   onOffState = false;
-  prevState = this->currentFanSpeed();
+  prevState = this->getCurrentFanSpeed();
   this->setFanSpeed(0);
   this->executeFanChanges();
   Serial.println("FAN OFF");
@@ -312,6 +315,8 @@ void Fan::turnDeviceOff(void) {
 
 void Fan::turnDeviceOn(void) {
   onOffState = true;
+
+  //  Here we're forcing the hood to turn on to a default of Hi
   prevState = prevState == OFF ? Hi : prevState;
   this->setFanSpeed(prevState);
   this->executeFanChanges();
@@ -327,22 +332,27 @@ void Fan::process(void) {
   if (checkingForPowerButton.onPress()) {
     Serial.println("Power button on press");
     onOffState = false;
+    prevState = fanSpeed;
     fanSpeed = Off;
   } else if (checkingForFanLowButton.onPress()) {
     Serial.println("Fan Low button on press");
     onOffState = true;
+    prevState = fanSpeed;
     fanSpeed = Low;
   } else if (checkingForFanMedButton.onPress()) {
     Serial.println("Fan Med button on press");
     onOffState = true;
+    prevState = fanSpeed;
     fanSpeed = Med;
   } else if (checkingForFanHiButton.onPress()) {
     Serial.println("Fan Hi button on press");
     onOffState = true;
+    prevState = fanSpeed;
     fanSpeed = Hi;
   } else if (checkingForFanHiButton.onLongPressed()) {
     Serial.println("Fan Hi button on LONG press");
     onOffState = true;
+    prevState = fanSpeed;
     fanSpeed = Boost;
   }
 }
@@ -395,7 +405,7 @@ Gesture::Gesture(Light& inputLightDevice, Fan& inputFanDevice) :
 
 void Gesture::handleGesture() {
   int lightBrightness = lightDevice.getBrightnessLevel();
-  int fanLevel = fanDevice.currentFanSpeed();
+  int fanLevel = fanDevice.getCurrentFanSpeed();
   if ( apds.isGestureAvailable() ) {
     switch ( apds.readGesture() ) {
       case DIR_UP:
