@@ -8,4 +8,7 @@ venthoodSrc/softiePage/FSEmeric-Medium.h
 venthoodSrc/softiePage/FSEmeric-Medium.woff
 venthoodSrc/softiePage/FSEmeric-Regular.h
 venthoodSrc/softiePage/FSEmeric-Regular.woff
+venthoodSrc/awsSrc/alexa-imp/*.zip
+venthoodSrc/awsSrc/db/*.zip
+venthoodSrc/awsSrc/oauth/*.zip
 .DS_Store
