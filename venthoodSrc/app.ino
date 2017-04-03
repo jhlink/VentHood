@@ -379,6 +379,13 @@ Timer timer(10000, powerCycle, true);
 void setup() {
   Serial.begin(9600);
 
+  pinMode(CH_A, OUTPUT);
+  pinMode(CH_B, OUTPUT);
+  pinMode(CH_C, OUTPUT);
+  pinMode(ENABLE, OUTPUT);
+  pinMode(LIGHT_STATE, INPUT);
+  pinMode(TASTI_READ, INPUT);
+
 #ifdef VOICE
   System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "FirstBuild Vent Hood");
   System.set(SYSTEM_CONFIG_SOFTAP_SUFFIX, "RFDO");
@@ -389,12 +396,6 @@ void setup() {
   publishDeviceCommissionInformation();
 #endif
 
-  pinMode(CH_A, OUTPUT);
-  pinMode(CH_B, OUTPUT);
-  pinMode(CH_C, OUTPUT);
-  pinMode(ENABLE, OUTPUT);
-  pinMode(LIGHT_STATE, INPUT);
-  pinMode(TASTI_READ, INPUT);
 
 #ifdef GESTURE
   venthoodGesture.init();
