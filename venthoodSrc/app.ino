@@ -388,7 +388,6 @@ void setup() {
 
 #ifdef VOICE
   System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "FirstBuild Vent Hood");
-  System.set(SYSTEM_CONFIG_SOFTAP_SUFFIX, "RFDO");
   
   while (!wifiCommissioning());
   Particle.connect();
