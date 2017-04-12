@@ -214,7 +214,7 @@ function constructDeviceCommand(event) {
   
       state = decrement;
   
-      if(state < 0) {
+      if (state < 0) {
         state = 0;
       }
   
@@ -423,7 +423,7 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
     applianceId: "light_" + deviceID,
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
-    version: '0.0.3',
+    version: '0.0.4',
     friendlyName: friendlyDeviceName,
     friendlyDescription: 'The lights in your FirstBuild made Voice Venthood.',
     isReachable: true,
@@ -442,11 +442,13 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
     applianceId: "fan_" + deviceID,
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
-    version: '0.0.3',
+    version: '0.0.4',
     friendlyName: friendlyDeviceName,
     friendlyDescription: 'The fan in your FirstBuild made Voice Venthood.',
     isReachable: true,
     actions:[
+      "incrementPercentage",
+      "decrementPercentage",
       "setPercentage",
       "turnOn",
       "turnOff"

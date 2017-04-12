@@ -315,10 +315,10 @@ int setPercentage(String args) {
       //    the power level.
       powerLevel = venthoodLights.getBrightnessLevel() / 50;
       if (incDecIdentifier == 1) {
-        powerLevel++;
+        powerLevel += (value / 50);
         Serial.println("BRIGHTENED");
       } else if (incDecIdentifier == 2) {
-        powerLevel--;
+        powerLevel -= (value / 50);
         Serial.println("DIMMED");
       } else if (incDecIdentifier == -1) {
         powerLevel = value / 50;
@@ -336,6 +336,22 @@ int setPercentage(String args) {
 
     case 1:
       //  Turn on Fan
+      powerLevel = venthoodFan.getCurrentFanSpeed() / 25;
+      if (incDecIdentifier == 1) {
+        powerLevel += (value / 25);
+        Serial.println("INCREASE");
+      } else if (incDecIdentifier == 2) {
+        powerLevel -= (value / 25);
+        Serial.println("DECREASE");
+      } else if (incDecIdentifier == -1) {
+        powerLevel = value / 25;
+        Serial.print("New Power level: ");
+        Serial.println(powerLevel);
+      }
+
+      powerLevel = powerLevel <= 4 ? powerLevel : 4;
+      powerLevel = powerLevel >= 0 ? powerLevel : 0;
+      powerLevel = powerLevel * 25;
       venthoodFan.setFanSpeed(powerLevel);
       venthoodFan.executeFanChanges();
       break;
