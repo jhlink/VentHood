@@ -31,8 +31,12 @@ logger.setLevel(logging.INFO)
 
 # setup the DynamoDB table
 dynamodb = boto3.resource('dynamodb')
-crdDB = os.environ['credentialDatabase']
-table = dynamodb.Table(crdDB)
+CREDENTIAL_DATABASE = os.environ['credentialDatabase']
+table = dynamodb.Table(CREDENTIAL_DATABASE)
+
+DEFAULT_FAN_NAME = os.environ['defaultFanName']
+DEFAULT_LIGHT_NAME = os.environ['defaultLightName']
+
 
 def lambda_handler(event, context):
     emailsInDatabase = getExistingDeviceCredentials(event['deviceID'])
@@ -45,9 +49,19 @@ def storeDeviceCredentials(event):
     print('Storing device credentials');
     deviceID = event['deviceID']
     amazonEmail = event['amznEmail'].lower()
-    fanDeviceName = event['fanDeviceName']
-    lightDeviceName = event['lightDeviceName']
+    
+    if (event['fanDeviceName'] == ""):
+        fanDeviceName = DEFAULT_FAN_NAME
+    else:
+        fanDeviceName =  event['fanDeviceName']
 
+    
+    if (event['lightDeviceName'] == ""):
+        lightDeviceName = DEFAULT_LIGHT_NAME
+    else:
+        lightDeviceName = event['lightDeviceName']
+    
+    
     table.put_item(
         Item={
             'device_id' : deviceID,
