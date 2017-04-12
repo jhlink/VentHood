@@ -158,8 +158,7 @@ function constructDeviceCommand(event) {
   var deviceId = deviceTypeAndID.split("_").pop();
   var deviceType = deviceTypeAndID.split("_").shift();
   var message_id = event.header.messageId;
-  var deviceName = event.payload.appliance.additionalApplianceDetails.userProvidedName;
-  
+
   var param = "";
   var state = 0;
   var confirmation;
@@ -425,12 +424,9 @@ function createVenthoodLightObject(deviceID, friendlyDeviceName) {
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
-    friendlyName: friendlyDeviceName === "" ?  'Venthood Lights' : friendlyDeviceName,
+    friendlyName: friendlyDeviceName,
     friendlyDescription: 'The lights in your FirstBuild made Voice Venthood.',
     isReachable: true,
-    additionaApplianceDetails: {
-      userProvidedName: friendlyDeviceName
-    },
     actions:[
       "incrementPercentage",
       "decrementPercentage",
@@ -447,12 +443,9 @@ function createVenthoodFanObject(deviceID, friendlyDeviceName) {
     manufacturerName: 'FirstBuild',
     modelName: 'Venthood',
     version: '0.0.3',
-    friendlyName: friendlyDeviceName === "" ?  'Venthood Exhaust' : friendlyDeviceName,
-    friendlyDescription: 'The exhaust in your FirstBuild made Voice Venthood.',
+    friendlyName: friendlyDeviceName,
+    friendlyDescription: 'The fan in your FirstBuild made Voice Venthood.',
     isReachable: true,
-    additionaApplianceDetails: {
-      userProvidedName: friendlyDeviceName
-    },
     actions:[
       "setPercentage",
       "turnOn",
