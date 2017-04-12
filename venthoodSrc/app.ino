@@ -387,7 +387,7 @@ void setup() {
   pinMode(TASTI_READ, INPUT);
 
 #ifdef VOICE
-  System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "FirstBuild Vent Hood");
+  System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "1B Vent Hood");
   
   while (!wifiCommissioning());
   Particle.connect();
