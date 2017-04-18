@@ -50,9 +50,3 @@ if (updateButton.addEventListener) {
 } else if (updateButton.attachEvent) {
   venthoodForm.attachEvent('onsubmit', device_configure);
 }
-var interval = setInterval(function() {
-  if (document.readyState === 'complete') {
-    clearInterval(interval);
-    window.alert('Naming your lights and fan can help avoid future issues when connecting other devices.\\nUse names that are clear and easy for Alexa to understand, like exhaust, lamp, or turbo.');
-  }
-}, 50);
