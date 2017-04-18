@@ -183,8 +183,20 @@ void publishDeviceCommissionInformation() {
   }
 }
 
+void wifiResetAndPowerCycle() {
+  WiFi.clearCredentials();
+  System.reset();
+}
+
+void resetWiFiOnPowerButtonLongPress() {
+  venthoodFan.process();
+  if (venthoodFan.wasPowerButtonLongPressed()) {
+    wifiResetAndPowerCycle();
+  }
+}
 
 bool wifiIsListening() {
+  resetWiFiOnPowerButtonLongPress();
   return !WiFi.listening();
 }
 
@@ -360,11 +372,6 @@ int setPercentage(String args) {
 }
 
 /* -------- TEST Code -------- */
-void wifiResetAndPowerCycle() {
-  WiFi.clearCredentials();
-  System.reset();
-}
-
 void testPublish() {
   static unsigned long timer = millis();
   jsonPayload = "{\"idx\":0,\"lightDeviceName\":\"lights\",\"fanDeviceName\":\"exhaust\",\"amznEmail\":\"james@firstbuild.com\"}";
@@ -434,8 +441,7 @@ void loop() {
 
   if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {
     Serial.println("Power button long pressed");
-    WiFi.clearCredentials();
-    System.reset();
+    wifiResetAndPowerCycle();
   }
   #endif 
 }

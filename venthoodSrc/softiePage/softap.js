@@ -46,13 +46,17 @@ var scan_callback = {
     network_list = a.scans;
     document.getElementById('stage3').className = 'circle';
     networksDiv.innerHTML = '';
-    if (network_list.length > 0)
-      for (var c = 0; c < network_list.length; c++) {
+    var wifiListLength = network_list.length <= 5 ? network_list.length : 5;
+    if (network_list.length > 0) {
+      for (var c = 0; c < wifiListLength; c++) {
         ssid = network_list[c].ssid;
         console.log(network_list[c]);
         add_wifi_option(networksDiv, ssid);
         togObjDisp('connect-div','none');
-      } else networksDiv.innerHTML = '<p> No networks found.</p>';
+      } 
+    } else {
+      networksDiv.innerHTML = '<p> No networks found.</p>';
+    }
   },
   error: function(a) {
     console.log('Scanning error:' + a);
@@ -184,8 +188,12 @@ function connectionPoll() {
     if (document.getElementById('stage4').className === 'circle') {
       return;    
     } else if (z.status !== 200) {
-      window.alert('Your connection has been interrupted.\\n\\nPlease restart the setup process.');
-      window.location.href = 'http://www.firstbuild.com/voiceventhood';
+      togObjDisp('connect-div','none');
+      togObjDisp('networks-div','none');
+      togObjDisp('scan-div', 'none');
+      togObjDisp('finish-div', 'none');
+      togObjDisp('hood-device-div', 'none');
+      togObjDisp('error-div', 'block');
     }
   };
   z.open('GET', base_url + 'alive', true);
