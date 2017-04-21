@@ -345,10 +345,10 @@ int setPercentage(String args) {
       //    the power level.
       powerLevel = venthoodLights.getBrightnessLevel() / 50;
       if (incDecIdentifier == 1) {
-        powerLevel += (value / 50);
+        powerLevel += (value / 25);
         Serial.println("BRIGHTENED");
       } else if (incDecIdentifier == 2) {
-        powerLevel -= (value / 50);
+        powerLevel -= (value / 25);
         Serial.println("DIMMED");
       } else if (incDecIdentifier == -1) {
         powerLevel = value / 50;
