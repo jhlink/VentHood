@@ -90,11 +90,15 @@ Page myPages[] = {
 
 #define MAX_ARGS 64
 
+#define WIFI_CONNECTING_TIMEOUT 10000
+#define COMMISSION_TIMEOUT 600000
+
 Fan venthoodFan = Fan(false);
 Light venthoodLights = Light(false);
 Gesture venthoodGesture = Gesture(venthoodLights, venthoodFan);
 bool lightMode = false;
 String jsonPayload = ""; 
+static unsigned long commissionTimeTracker = 0;
 
 static void chunkedSender(Writer* result, const uint8_t *pData, uint32_t length) {
   uint16_t chunkSize = 1028;
@@ -112,6 +116,11 @@ static void chunkedSender(Writer* result, const uint8_t *pData, uint32_t length)
   }
 
   Serial.println("Data sent.");
+}
+
+void wifiResetAndPowerCycle() {
+  WiFi.clearCredentials();
+  System.reset();
 }
 
 void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Writer* result, void* reserved) {
@@ -140,8 +149,21 @@ void myPage(const char* url, ResponseCallback* cb, void* cbArg, Reader* body, Wr
 
   if (strcmp(url, "/alive") ==0) {
     Serial.println("I'm alive.");
+    signed long remainingTimeToReset = COMMISSION_TIMEOUT - (millis() - commissionTimeTracker);
+    String timerResult = String::format("{\"a\": %s }", String(remainingTimeToReset, DEC).c_str());
+    size_t timerResultCharArrLen =  (timerResult.length() + 1);
+    char timerResultInCharArray[timerResultCharArrLen];
+    timerResult.toCharArray(timerResultInCharArray, timerResultCharArrLen);
+
+    if (remainingTimeToReset <= -5000) {
+      Serial.println("COMMISSION TIMEOUT -- EXECUTE RESET");
+      wifiResetAndPowerCycle();
+    }
+
+    Serial.println(timerResultInCharArray);
+    Serial.printlnf("Alive Time: %d", remainingTimeToReset);
     cb(cbArg, 0, 200, "text/plain", nullptr);
-    result->write("{\"a\": \"1\"}");
+    result->write(timerResultInCharArray);
     return;
   }
 
@@ -183,10 +205,6 @@ void publishDeviceCommissionInformation() {
   }
 }
 
-void wifiResetAndPowerCycle() {
-  WiFi.clearCredentials();
-  System.reset();
-}
 
 void resetWiFiOnPowerButtonLongPress() {
   venthoodFan.process();
@@ -373,21 +391,21 @@ int setPercentage(String args) {
 
 /* -------- TEST Code -------- */
 void testPublish() {
-  static unsigned long timer = millis();
+  static unsigned long publishTimer = millis();
   jsonPayload = "{\"idx\":0,\"lightDeviceName\":\"lights\",\"fanDeviceName\":\"exhaust\",\"amznEmail\":\"james@firstbuild.com\"}";
-  if ((millis() - timer) > 15000) {
+  if ((millis() - publishTimer) > 15000) {
     //  This is Spark json thing. 
     publishDeviceCommissionInformation();
-    timer = millis();
+    publishTimer = millis();
   }
 }
 
 void wifiReset() {
-  static unsigned long timer = millis();
-  if ((millis() - timer) > 30000) {
+  static unsigned long wifiResetTimer = millis();
+  if ((millis() - wifiResetTimer) > 30000) {
     WiFi.clearCredentials();
     WiFi.listen();
-    timer = millis();
+    wifiResetTimer = millis();
   }
 }
 
@@ -397,7 +415,7 @@ void powerCycle() {
 
 /* -------- END of TEST Code -------- */
 
-Timer timer(10000, powerCycle, true);
+Timer commissionResetTimer(WIFI_CONNECTING_TIMEOUT, wifiResetAndPowerCycle, true);
 
 void setup() {
   Serial.begin(9600);
@@ -412,12 +430,18 @@ void setup() {
 #ifdef VOICE
   System.set(SYSTEM_CONFIG_SOFTAP_PREFIX, "1B Vent Hood");
   
+  // Ensure that any latent information stored for 10 minutes is cleared
+  //  and reset after timeout.
+  commissionTimeTracker = millis();
+
   while (!wifiCommissioning());
   Particle.connect();
   while (!Particle.connected());
   publishDeviceCommissionInformation();
-#endif
 
+  // When the device is hung attempting to connect with the loop, 
+  //  wifi reset and power cycle.
+#endif
 
 #ifdef GESTURE
   venthoodGesture.init();
@@ -436,7 +460,7 @@ void loop() {
 
   #ifdef VOICE 
   if (WiFi.connecting()) {
-    timer.start();
+    commissionResetTimer.start();
   }
 
   if (!WiFi.listening() && venthoodFan.wasPowerButtonLongPressed()) {

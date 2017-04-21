@@ -182,25 +182,32 @@ var getRequest = function(a, b) {
       }
   };
 };
+function directToErrorSection() {
+  togObjDisp('connect-div','none');
+  togObjDisp('networks-div','none');
+  togObjDisp('scan-div', 'none');
+  togObjDisp('finish-div', 'none');
+  togObjDisp('hood-device-div', 'none');
+  togObjDisp('error-div', 'block');
+}
 function connectionPoll() {
   var z = new XMLHttpRequest();
   z.ontimeout = function() {
     if (document.getElementById('stage4').className === 'circle') {
       return;    
     } else if (z.status !== 200) {
-      togObjDisp('connect-div','none');
-      togObjDisp('networks-div','none');
-      togObjDisp('scan-div', 'none');
-      togObjDisp('finish-div', 'none');
-      togObjDisp('hood-device-div', 'none');
-      togObjDisp('error-div', 'block');
+      directToErrorSection();
     }
   };
   z.open('GET', base_url + 'alive', true);
   z.timeout = 4000;
+  z.responseType = 'json';
   z.onload = function() {
     if(z.readyState == 4 && z.status === 200) {
-        setTimeout(connectionPoll, 5000);
+      setTimeout(connectionPoll, 5000);
+      if (z.response.a <= 0) {
+        directToErrorSection();
+      }
     }
   };
   z.send();
