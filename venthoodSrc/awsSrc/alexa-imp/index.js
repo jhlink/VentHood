@@ -129,7 +129,7 @@ function handleDiscovery(event, context) {
         log('Discovery', result);
   
         context.succeed(result);
-    }, log);
+    });
   }
 }
 
@@ -338,7 +338,11 @@ function log(title, msg) {
     } catch (e) {
         msgBody = msg;
     }
-  console.log(title + ': ' + msgBody);
+    if (msgBody) {
+        console.log(title + ': ' + msgBody);
+    } else {
+        console.log(title);
+    }
 }
 
 function createMessageUUID() {
@@ -371,12 +375,11 @@ function requestForUserEmail(event) {
         res.on('data', function procInput(rawData) {
             var jsonData = JSON.parse(rawData);
             var userEmailAddr = jsonData.email;
-            return resolve(userEmailAddr);
+            resolve(userEmailAddr);
         });
     });
     getRequest.on('error', function ohno(err) {
-        log("Login With Amazon Error", err);
-        reject(processedData);
+        return reject("Login With Amazon Error", err);
     });
   });
 }
@@ -402,17 +405,18 @@ function requestForDeviceServiceAccessToken(event) {
 }
 
 function retrieveItemFromDynamoDB(getItemParam) {
-  return new Promise(function promiseToRequestForUserDeviceProfiles(resolve, request) {
+  return new Promise(function promiseToRequestForUserDeviceProfiles(resolve, reject) {
 	  var dynamoDBData;
 
     db.getItem(getItemParam, function(err, data) {
       if (err) {
-        log('getItem Error', err);
-        return reject("ERROR", "Cannot obtain device data from database.");
-      } else {
+        return reject("DB ERROR", err);
+      } else if (data.Item) {
         // Convert DynamoDB Wrapped JSON object into regular JSON object.
         dynamoDBData = attr.unwrap(data.Item);
-        resolve(dynamoDBData);
+        return resolve(dynamoDBData);
+      } else {
+        return reject("RECORD NOT FOUND", err);
       }
     });
   });
